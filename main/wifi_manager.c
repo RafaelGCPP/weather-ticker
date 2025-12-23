@@ -14,7 +14,7 @@ static const char *TAG = "wifi_manager";
 #define WIFI_FAIL_BIT BIT1
 #define MAX_RETRY 5
 
-static EventGroupHandle_t s_wifi_event_group;
+static EventGroupHandle_t s_wifi_event_group = NULL;
 static int s_retry_num = 0;
 static bool s_is_softap_mode = false;
 
@@ -102,7 +102,6 @@ bool wifi_manager_start_softap(void) {
     esp_netif_create_default_wifi_ap();
     
     esp_event_handler_instance_t instance_any_id;
-    esp_event_handler_instance_t instance_got_ip;
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                                                         ESP_EVENT_ANY_ID,
                                                         &wifi_event_handler,
@@ -140,7 +139,10 @@ bool wifi_manager_connect(const char *ssid, const char *password) {
         return false;
     }
     
-    s_wifi_event_group = xEventGroupCreate();
+    // Create event group if not already created
+    if (s_wifi_event_group == NULL) {
+        s_wifi_event_group = xEventGroupCreate();
+    }
     
     esp_netif_create_default_wifi_sta();
     
