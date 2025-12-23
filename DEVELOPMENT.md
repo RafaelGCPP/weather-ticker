@@ -17,6 +17,19 @@ Handles persistent storage of configuration data using ESP-IDF's Non-Volatile St
 - `nvs_get_wifi_ssid/psk()`: Retrieve station mode credentials
 - `nvs_set_wifi_ssid/psk()`: Store station mode credentials
 
+**Implementation Notes:**
+- The public `nvs_get_*` / `nvs_set_*` functions are intentionally thin wrappers.
+- Shared NVS boilerplate (open/read-or-write/commit/close + logging) lives in internal generic helpers:
+   - `nvs_get_str_generic(...)` for reading strings
+   - `nvs_set_generic(...)` for writing values (via a small type-specific adapter, e.g. `nvs_set_str`)
+
+**Adding a new NVS value:**
+1. Add a new `NVS_KEY_*` define in `nvs_storage.h`.
+2. Add a public `nvs_get_*` / `nvs_set_*` wrapper that calls the appropriate generic helper with:
+    - the key (`NVS_KEY_*`)
+    - the value/buffer
+    - a human-readable `item_name` for log messages
+
 **NVS Namespace:** `wifi_config`
 
 #### 2. Base32 Generator (`base32.c/h`)
