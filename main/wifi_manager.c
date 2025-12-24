@@ -8,6 +8,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include <string.h>
+#include "qrcode.h"
 
 static const char *TAG = "wifi_manager";
 
@@ -99,6 +100,11 @@ bool wifi_manager_start_softap(void) {
     ESP_LOGI(TAG, "  PSK:  %s", psk);
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "");
+
+    char text[128];
+    snprintf(text, 128, "WIFI:T:WPA;S:%s;P:%s;;", ssid, psk);
+    esp_qrcode_config_t cfg = ESP_QRCODE_CONFIG_DEFAULT();
+    esp_qrcode_generate(&cfg,text);
     
     esp_netif_create_default_wifi_ap();
     
