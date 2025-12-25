@@ -1,5 +1,5 @@
 #pragma once
-
+#include "typedefs.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
@@ -13,17 +13,16 @@ typedef enum
     UI_CMD_WIFI_CONNECTING // Display "Connecting..." screen
 } ui_cmd_t;
 
+
+
 // The message that travels through the queue
 typedef struct
 {
     ui_cmd_t cmd;
     union
     {
-        struct
-        {
-            char ssid[32];     // Buffer for SSID (SoftAP or Connected WiFi)
-            char password[64]; // Buffer for Password (SoftAP)
-        } wpa_data;
+        wpa_info_t wpa_data; // SSID and PSK for Wi-Fi
+        char url[128]; // Buffer for Configuration URL
     } payload;
 
 } ui_msg_t;

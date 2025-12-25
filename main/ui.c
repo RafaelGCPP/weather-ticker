@@ -6,6 +6,7 @@
 
 // Forward declaration
 static void show_AP_qrcode(const char *ssid, const char *password);
+static void show_config_qrcode(const char *url);
 static void show_qrcode();
 
 // Constants
@@ -38,7 +39,11 @@ void update_ui(void)
         switch (msg.cmd)
         {
         case UI_CMD_SHOW_AP_QR:
-            show_AP_qrcode(msg.payload.wpa_data.ssid, msg.payload.wpa_data.password);
+            show_AP_qrcode(msg.payload.wpa_data.ssid, msg.payload.wpa_data.psk);
+            break;
+
+        case UI_CMD_SHOW_CONFIG_QR:
+            show_config_qrcode(msg.payload.url);
             break;
 
         case UI_CMD_SHOW_CLOCK:
@@ -102,6 +107,33 @@ static void show_AP_qrcode(const char *ssid, const char *password)
     // With 15px spacing between them (x=15, y=0)
     lv_obj_align_to(label_status, qr_code_obj, LV_ALIGN_OUT_RIGHT_MID, 15, 0);
 }
+
+static void show_config_qrcode(const char *url)
+{
+    show_qrcode();
+    // --- PAYLOAD GENERATION ---
+    char payload[150];
+
+    snprintf(payload, sizeof(payload), "%s", url);
+
+    lv_qrcode_update(qr_code_obj, payload, strlen(payload));
+
+    // Set text with line breaks (\n)
+    lv_label_set_text_fmt(label_status, "Scan to config,\nor browse to:\n%s", url);
+    // Text Styling
+    lv_obj_set_style_text_color(label_status, lv_color_white(), 0); // White text
+
+    // Set max width so text doesn't overflow if SSID is long
+    // 320 (total width) - 10 (left margin) - 120 (QR) - 15 (spacing) = ~175px available
+    lv_obj_set_width(label_status, 169);
+    lv_label_set_long_mode(label_status, LV_LABEL_LONG_WRAP); // Wrap line if too long
+
+    // The Alignment Trick:
+    // Align text "OUTSIDE, TO THE RIGHT" (OUT_RIGHT) of the QR Code object
+    // With 15px spacing between them (x=15, y=0)
+    lv_obj_align_to(label_status, qr_code_obj, LV_ALIGN_OUT_RIGHT_MID, 15, 0);
+}
+
 
 // Helper function to create/update QR Code
 static void show_qrcode()

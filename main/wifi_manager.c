@@ -1,3 +1,4 @@
+#include "typedefs.h"
 #include "wifi_manager.h"
 #include "nvs_storage.h"
 #include "psk_generator.h"
@@ -22,7 +23,7 @@ static bool s_is_softap_mode = false;
 
 static void wifi_sta_event_handler(int32_t event_id, void *event_data);
 static void wifi_ap_event_handler(int32_t event_id, void *event_data);
-
+static void get_wpa_info_from_nvs(wpa_info_t *wpa_info);
 
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -43,9 +44,6 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         wifi_sta_event_handler(event_id, event_data);
     }
 }
-
-
-
 
 static void wifi_sta_event_handler(int32_t event_id, void *event_data)
 {
@@ -76,7 +74,6 @@ static void wifi_sta_event_handler(int32_t event_id, void *event_data)
     }
 }
 
-
 static void wifi_ap_event_handler(int32_t event_id, void *event_data)
 {
     if (event_id == WIFI_EVENT_AP_STACONNECTED)
@@ -84,16 +81,28 @@ static void wifi_ap_event_handler(int32_t event_id, void *event_data)
         wifi_event_ap_staconnected_t *event = (wifi_event_ap_staconnected_t *)event_data;
         ESP_LOGI(TAG, "Station " MACSTR " joined, AID=%d",
                  MAC2STR(event->mac), event->aid);
+
+        // Get local IP address for SoftAP interface
+        esp_netif_ip_info_t ip_info;
+        esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+        if (netif && esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
+            char url[64];
+            snprintf(url, sizeof(url), "http://" IPSTR "/c", IP2STR(&ip_info.ip));
+            ui_show_config_qrcode(url);
+        } else {
+            ESP_LOGE(TAG, "Failed to get SoftAP IP info");
+        }
     }
     else if (event_id == WIFI_EVENT_AP_STADISCONNECTED)
     {
         wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
         ESP_LOGI(TAG, "Station " MACSTR " left, AID=%d",
                  MAC2STR(event->mac), event->aid);
+        wpa_info_t softap_info;
+        get_wpa_info_from_nvs(&softap_info);
+        ui_show_AP_qr(softap_info.ssid, softap_info.psk);
     }
 }
-
-
 
 static bool wifi_init_common(void)
 {
@@ -122,27 +131,31 @@ static bool wifi_init_common(void)
     return true;
 }
 
-bool wifi_manager_start_softap(void)
+static void get_wpa_info_from_nvs(wpa_info_t *wpa_info)
 {
-    char ssid[MAX_SSID_LEN] = {0};
-    char psk[MAX_PSK_LEN] = {0};
-
-    // Try to get SoftAP credentials from NVS
-    if (!nvs_get_softap_ssid(ssid, sizeof(ssid)))
+    if (!nvs_get_softap_ssid(wpa_info->ssid, sizeof(wpa_info->ssid)))
     {
         // Use default SSID
-        strncpy(ssid, DEFAULT_SOFTAP_SSID, sizeof(ssid) - 1);
+        strncpy(wpa_info->ssid, DEFAULT_SOFTAP_SSID, sizeof(wpa_info->ssid) - 1);
         // Save to NVS for next time
-        nvs_set_softap_ssid(ssid);
+        nvs_set_softap_ssid(wpa_info->ssid);
     }
 
-    if (!nvs_get_softap_psk(psk, sizeof(psk)))
+    if (!nvs_get_softap_psk(wpa_info->psk, sizeof(wpa_info->psk)))
     {
         // Generate random PSK
-        generate_random_psk(psk, SOFTAP_PSK_LENGTH);
+        generate_random_psk(wpa_info->psk, SOFTAP_PSK_LENGTH);
         // Save to NVS for next time
-        nvs_set_softap_psk(psk);
+        nvs_set_softap_psk(wpa_info->psk);
     }
+}
+
+bool wifi_manager_start_softap(void)
+{
+
+    // Try to get SoftAP credentials from NVS
+    wpa_info_t softap_info;
+    get_wpa_info_from_nvs(&softap_info);
 
     esp_netif_create_default_wifi_ap();
 
@@ -159,11 +172,11 @@ bool wifi_manager_start_softap(void)
             .authmode = WIFI_AUTH_WPA_WPA2_PSK},
     };
 
-    strncpy((char *)wifi_config.ap.ssid, ssid, sizeof(wifi_config.ap.ssid) - 1);
-    strncpy((char *)wifi_config.ap.password, psk, sizeof(wifi_config.ap.password) - 1);
-    wifi_config.ap.ssid_len = strlen(ssid);
+    strncpy((char *)wifi_config.ap.ssid, softap_info.ssid, sizeof(wifi_config.ap.ssid) - 1);
+    strncpy((char *)wifi_config.ap.password, softap_info.psk, sizeof(wifi_config.ap.password) - 1);
+    wifi_config.ap.ssid_len = strlen(softap_info.ssid);
 
-    if (strlen(psk) == 0)
+    if (strlen(softap_info.psk) == 0)
     {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
@@ -179,12 +192,12 @@ bool wifi_manager_start_softap(void)
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "  SoftAP Mode Active");
     ESP_LOGI(TAG, "===========================================");
-    ESP_LOGI(TAG, "  SSID: %s", ssid);
-    ESP_LOGI(TAG, "  PSK:  %s", psk);
+    ESP_LOGI(TAG, "  SSID: %s", softap_info.ssid);
+    ESP_LOGI(TAG, "  PSK:  %s", softap_info.psk);
     ESP_LOGI(TAG, "===========================================");
     ESP_LOGI(TAG, "");
 
-    ui_show_AP_qr(ssid, psk);
+    ui_show_AP_qr(softap_info.ssid, softap_info.psk);
 
     return true;
 }

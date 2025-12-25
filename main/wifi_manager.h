@@ -5,8 +5,7 @@
 
 #define DEFAULT_SOFTAP_SSID "Weather"
 #define SOFTAP_PSK_LENGTH 12
-#define MAX_SSID_LEN 32
-#define MAX_PSK_LEN 64
+
 
 /**
  * @brief Initialize and start WiFi manager
