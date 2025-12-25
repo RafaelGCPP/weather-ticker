@@ -21,7 +21,7 @@ typedef struct
     {
         char ssid[33];     // Buffer for SSID (SoftAP or Connected WiFi)
         char password[65]; // Buffer for Password (SoftAP)
-    } ap_data;
+    } wpa_data;
 
 } ui_msg_t;
 

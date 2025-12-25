@@ -34,7 +34,7 @@ void update_ui(void) {
 
         switch (msg.cmd) {
             case UI_CMD_SHOW_AP_QR:
-                show_AP_qrcode(msg.ap_data.ssid, msg.ap_data.password);
+                show_AP_qrcode(msg.wpa_data.ssid, msg.wpa_data.password);
                 break;
 
             case UI_CMD_SHOW_CLOCK:
@@ -45,7 +45,7 @@ void update_ui(void) {
                 break;
             
             case UI_CMD_WIFI_CONNECTING:
-                 if(label_status) lv_label_set_text_fmt(label_status, "Connecting to\n%s...", msg.ssid);
+                 if(label_status) lv_label_set_text_fmt(label_status, "Connecting to\n%s...", msg.wpa_data.ssid);
                  break;
 
             default:
