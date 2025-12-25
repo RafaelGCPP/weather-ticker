@@ -1,6 +1,6 @@
 #include "wifi_manager.h"
 #include "nvs_storage.h"
-#include "base32.h"
+#include "psk_generator.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -139,7 +139,7 @@ bool wifi_manager_start_softap(void)
     if (!nvs_get_softap_psk(psk, sizeof(psk)))
     {
         // Generate random PSK
-        base32_generate_random(psk, SOFTAP_PSK_LENGTH);
+        generate_random_psk(psk, SOFTAP_PSK_LENGTH);
         // Save to NVS for next time
         nvs_set_softap_psk(psk);
     }

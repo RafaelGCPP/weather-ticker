@@ -10,6 +10,6 @@
  * @param output Buffer to store the base32 string (must be at least length+1 for null terminator)
  * @param length Desired length of the base32 string (in characters)
  */
-void base32_generate_random(char *output, size_t length);
+void generate_random_psk(char *output, size_t length);
 
 #endif // BASE32_H

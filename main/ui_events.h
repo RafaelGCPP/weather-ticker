@@ -19,9 +19,12 @@ typedef struct
     ui_cmd_t cmd;
     union
     {
-        char ssid[33];     // Buffer for SSID (SoftAP or Connected WiFi)
-        char password[65]; // Buffer for Password (SoftAP)
-    } wpa_data;
+        struct
+        {
+            char ssid[32];     // Buffer for SSID (SoftAP or Connected WiFi)
+            char password[64]; // Buffer for Password (SoftAP)
+        } wpa_data;
+    } payload;
 
 } ui_msg_t;
 
