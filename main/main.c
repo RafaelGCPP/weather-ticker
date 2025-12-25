@@ -11,7 +11,11 @@ static const char *TAG = "main";
 void app_main(void) {
     ESP_LOGI(TAG, "Weather Ticker - Starting up");
     ESP_LOGI(TAG, "Chip: %s", CONFIG_IDF_TARGET);
+   
     
+    // Initialize Display and start Update task
+    initialize_display();
+
     // Initialize NVS
     if (!nvs_storage_init()) {
         ESP_LOGE(TAG, "Failed to initialize NVS storage");
@@ -24,8 +28,7 @@ void app_main(void) {
         return;
     }
     
-    // Initialize Display and start Update task
-    initialize_display();
+
     
     // Main loop
     while (1) {

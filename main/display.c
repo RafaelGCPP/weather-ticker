@@ -4,6 +4,7 @@
 #include "t_display_s3.h"
 #include "display.h"
 #include "ui.h"
+#include "ui_events.h"
 
 
 static lv_disp_t *disp_handle = NULL;
@@ -12,6 +13,8 @@ static void ui_update_task(void *pvParam);
 
 void initialize_display(void)
 {
+    ui_init_queue();
+
     lcd_init(&disp_handle, true);
 
     xTaskCreatePinnedToCore(ui_update_task, "update_ui", 4096 * 2, NULL, 0, NULL, 1);

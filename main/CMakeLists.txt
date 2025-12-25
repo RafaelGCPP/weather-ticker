@@ -4,4 +4,5 @@ idf_component_register(SRCS "main.c"
                              "base32.c"
                              "display.c"
                              "ui.c"
+                             "ui_events.c"
                     INCLUDE_DIRS ".")
