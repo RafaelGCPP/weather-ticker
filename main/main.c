@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "nvs_storage.h"
 #include "wifi_manager.h"
+#include "display.h"
 
 static const char *TAG = "main";
 
@@ -23,10 +24,12 @@ void app_main(void) {
         return;
     }
     
-    ESP_LOGI(TAG, "System initialized successfully");
+    // Initialize Display and start Update task
+    initialize_display();
     
     // Main loop
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
+
