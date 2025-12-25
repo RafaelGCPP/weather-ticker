@@ -17,7 +17,7 @@ void initialize_display(void)
 
     lcd_init(&disp_handle, true);
 
-    xTaskCreatePinnedToCore(ui_update_task, "update_ui", 4096 * 2, NULL, 0, NULL, 1);
+    xTaskCreatePinnedToCore(ui_update_task, "update_ui", 4096 * 2, NULL, 5, NULL, 1);
 
 }
 

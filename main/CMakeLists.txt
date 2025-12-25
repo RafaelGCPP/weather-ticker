@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c"
+idf_component_register(SRCS "web_server.c" "main.c"
                              "wifi_manager.c"
                              "nvs_storage.c"
                              "psk_generator.c"

@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "nvs_storage.h"
 #include "wifi_manager.h"
+#include "web_server.h"
 #include "display.h"
 
 static const char *TAG = "main";
@@ -28,8 +29,7 @@ void app_main(void) {
         return;
     }
     
-
-    
+    web_server_init();
     // Main loop
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(1000));
