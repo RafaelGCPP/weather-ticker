@@ -9,12 +9,12 @@ void ui_show_AP_qr(const char *ssid, const char *psk)
         ui_msg_t msg;
         msg.cmd = UI_CMD_SHOW_AP_QR;
 
-        // Copia SSID e Senha seguros
-        strncpy(msg.ssid, ssid, sizeof(msg.ssid) - 1);
-        msg.ssid[sizeof(msg.ssid) - 1] = 0;
+        // Copy SSID and PSK into the message structure
+        strncpy(msg.ap_data.ssid, ssid, sizeof(msg.ap_data.ssid) - 1);
+        msg.ap_data.ssid[sizeof(msg.ap_data.ssid) - 1] = 0;
 
-        strncpy(msg.password, psk, sizeof(msg.password) - 1);
-        msg.password[sizeof(msg.password) - 1] = 0;
+        strncpy(msg.ap_data.password, psk, sizeof(msg.ap_data.password) - 1);
+        msg.ap_data.password[sizeof(msg.ap_data.password) - 1] = 0;
 
         xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
     }

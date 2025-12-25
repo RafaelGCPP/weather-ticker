@@ -34,7 +34,7 @@ void update_ui(void) {
 
         switch (msg.cmd) {
             case UI_CMD_SHOW_AP_QR:
-                show_AP_qrcode(msg.ssid, msg.password);
+                show_AP_qrcode(msg.ap_data.ssid, msg.ap_data.password);
                 break;
 
             case UI_CMD_SHOW_CLOCK:
