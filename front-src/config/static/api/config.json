@@ -1,0 +1,10 @@
+{
+  "apSsid": "MyClock-ESP32",
+  "apPassword": "supersecretpassword",
+  "wifiSsid": "My_Home_WiFi",
+  "wifiPassword": "",
+  "weatherApiKey": "a1b2c3d4e5f6",
+  "weatherCity": "London,UK",
+  "ntpServer": "pool.ntp.org",
+  "timeZone": "GMT0BST,M3.5.0/1,M10.5.0"
+}
