@@ -9,24 +9,63 @@
 static const char *TAG = "WEB_SERVER";
 #define MOUNT_POINT "/littlefs"
 
-// --- API STUBS (Where the magic will happen later) ---
+// --- HELPER: PATH ROUTING LOGIC ---
+// This is the brain that maps URLs to LittleFS folders
+void resolve_filepath(char *filepath, size_t max_len, const char *uri) {
+    // 1. Configuration App (Prefixed with /c)
+    // Access: http://esp32/c -> /littlefs/front/config/index.html
+    if (strncmp(uri, "/c", 2) == 0) {
+        if (strlen(uri) == 2 || strcmp(uri, "/c/") == 0) {
+            snprintf(filepath, max_len, "%s/front/config/index.html", MOUNT_POINT);
+        } else {
+            // Remove the "/c" prefix so /c/style.css becomes /front/config/style.css
+            snprintf(filepath, max_len, "%s/front/config%s", MOUNT_POINT, uri + 2);
+        }
+    } 
+    // 2. Weather App (Root)
+    // Access: http://esp32/ -> /littlefs/front/weather/index.html
+    else if (strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0) {
+        snprintf(filepath, max_len, "%s/front/weather/index.html", MOUNT_POINT);
+    }
+    // 3. Asset Fallback (Everything else defaults to weather app folder)
+    else {
+        snprintf(filepath, max_len, "%s/front/weather%s", MOUNT_POINT, uri);
+    }
+}
 
-// GET /api/status -> Returns JSON with Dashboard data
-static esp_err_t api_status_get_handler(httpd_req_t *req) {
-    // Example JSON response
-    const char *resp_str = "{\"time\": \"12:34\", \"temp\": 24.5, \"weather\": \"cloudy\", \"gps_lat\": -23.55, \"gps_lon\": -46.63}";
+// --- API HANDLERS (Matches Svelte Fetch Calls) ---
+
+// GET /api/scan -> Returns available Wi-Fi networks
+static esp_err_t api_scan_get_handler(httpd_req_t *req) {
+    // TODO: Connect to actual Wi-Fi Scan function
+    // For now, return the Mock JSON expected by Svelte
+    const char *json_response = "[\"Home_WiFi\", \"Guest_Network\", \"IoT_Device_AP\"]";
     
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-// POST /api/config -> Receives Configuration JSON
-static esp_err_t api_config_post_handler(httpd_req_t *req) {
-    char buf[200];
+// GET /api/config -> Returns current settings to populate the form
+static esp_err_t api_config_get_handler(httpd_req_t *req) {
+    // TODO: Read from NVS
+    const char *json_response = "{"
+        "\"apSsid\": \"ESP32-Clock\","
+        "\"wifiSsid\": \"My_Home\","
+        "\"weatherCity\": \"Rio de Janeiro,BR\","
+        "\"timeZone\": \"<-03>3\""
+    "}";
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+// POST /api/save -> Receives JSON to save settings
+static esp_err_t api_save_post_handler(httpd_req_t *req) {
+    char buf[512]; // Increased buffer for full config JSON
     int ret, remaining = req->content_len;
 
-    // Read POST body (JSON)
     if (remaining >= sizeof(buf)) {
         httpd_resp_send_500(req);
         return ESP_FAIL;
@@ -34,13 +73,11 @@ static esp_err_t api_config_post_handler(httpd_req_t *req) {
 
     ret = httpd_req_recv(req, buf, remaining);
     if (ret <= 0) return ESP_FAIL;
-    buf[ret] = '\0'; // Null-terminate
+    buf[ret] = '\0';
 
-    ESP_LOGI(TAG, "Received config JSON: %s", buf);
+    ESP_LOGI(TAG, "Saving Config: %s", buf);
 
-    // TODO: Parse JSON and save to NVS
-    // cJSON *root = cJSON_Parse(buf);
-    // ... logic to save SSID, PSK, APIKey, GPS Params ...
+    // TODO: Use cJSON_Parse(buf) and save to NVS here
     
     httpd_resp_send(req, "{\"status\":\"saved\"}", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
@@ -48,7 +85,6 @@ static esp_err_t api_config_post_handler(httpd_req_t *req) {
 
 // --- GENERIC FILE SERVER ---
 
-// Helper function to determine Content-Type by extension
 static const char* get_content_type(const char *path) {
     const char *ext = strrchr(path, '.');
     if (!ext) return "text/plain";
@@ -61,40 +97,28 @@ static const char* get_content_type(const char *path) {
     return "text/plain";
 }
 
-// Generic GET handler (Static files)
 static esp_err_t common_get_handler(httpd_req_t *req) {
     char filepath[600];
     
-    // Route Mapping
-    if (strcmp(req->uri, "/") == 0) {
-        strcpy(filepath, MOUNT_POINT "/index.html");
-    } else if (strcmp(req->uri, "/c") == 0) {
-        strcpy(filepath, MOUNT_POINT "/config.html");
-    } else {
-        // For anything else, try to find the file in LittleFS
-        // Ex: /style.css -> /littlefs/style.css
-        snprintf(filepath, sizeof(filepath), "%s%s", MOUNT_POINT, req->uri);
-    }
+    // Use the new routing logic
+    resolve_filepath(filepath, sizeof(filepath), req->uri);
 
-    // Try to open the file
     struct stat st;
     if (stat(filepath, &st) == -1) {
-        ESP_LOGE(TAG, "File not found: %s", filepath);
+        ESP_LOGW(TAG, "Not Found: %s (URI: %s)", filepath, req->uri);
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
 
     FILE *fd = fopen(filepath, "r");
     if (!fd) {
-        ESP_LOGE(TAG, "Failed to read file: %s", filepath);
+        ESP_LOGE(TAG, "Failed to read: %s", filepath);
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
-    // Set content type
     httpd_resp_set_type(req, get_content_type(filepath));
 
-    // Read in chunks and send (to avoid RAM overflow)
     char *chunk = malloc(1024);
     size_t chunksize;
     do {
@@ -104,9 +128,7 @@ static esp_err_t common_get_handler(httpd_req_t *req) {
         }
     } while (chunksize != 0);
 
-    // End the response
     httpd_resp_send_chunk(req, NULL, 0);
-    
     free(chunk);
     fclose(fd);
     return ESP_OK;
@@ -115,7 +137,6 @@ static esp_err_t common_get_handler(httpd_req_t *req) {
 // --- INITIALIZATION ---
 
 void web_server_init(void) {
-    // 1. Mount LittleFS
     esp_vfs_littlefs_conf_t conf = {
         .base_path = MOUNT_POINT,
         .partition_label = "littlefs",
@@ -123,57 +144,42 @@ void web_server_init(void) {
         .dont_mount = false,
     };
 
-    esp_err_t ret = esp_vfs_littlefs_register(&conf);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to mount LittleFS (%s)", esp_err_to_name(ret));
+    if (esp_vfs_littlefs_register(&conf) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount LittleFS");
         return;
     }
 
-    size_t total = 0, used = 0;
-    ret = esp_littlefs_info(conf.partition_label, &total, &used);
-    if (ret == ESP_OK) {
-        ESP_LOGI(TAG, "LittleFS mounted! Total: %d, Used: %d", total, used);
-    }
-
-    // 2. Start HTTP Server
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.uri_match_fn = httpd_uri_match_wildcard; // Allows using *
-    config.server_port = 80;
-    config.core_id = 0; 
-    config.stack_size = 8192; 
-    config.task_priority = 5;
+    config.uri_match_fn = httpd_uri_match_wildcard;
+    config.max_uri_handlers = 10; // Increased just in case
+    config.stack_size = 8192;
 
-    ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
+    ESP_LOGI(TAG, "Starting Web Server...");
     if (httpd_start(&server, &config) == ESP_OK) {
         
-        // Route: API Status
-        httpd_uri_t uri_api_status = {
-            .uri       = "/api/status",
-            .method    = HTTP_GET,
-            .handler   = api_status_get_handler,
-            .user_ctx  = NULL
+        // 1. API: Scan Networks
+        httpd_uri_t uri_scan = {
+            .uri = "/api/scan", .method = HTTP_GET, .handler = api_scan_get_handler, .user_ctx = NULL
         };
-        httpd_register_uri_handler(server, &uri_api_status);
+        httpd_register_uri_handler(server, &uri_scan);
 
-        // Route: API Config (Save)
-        httpd_uri_t uri_api_config = {
-            .uri       = "/api/config", // Changed from /save for standardization
-            .method    = HTTP_POST,
-            .handler   = api_config_post_handler,
-            .user_ctx  = NULL
+        // 2. API: Get Configuration
+        httpd_uri_t uri_config = {
+            .uri = "/api/config", .method = HTTP_GET, .handler = api_config_get_handler, .user_ctx = NULL
         };
-        httpd_register_uri_handler(server, &uri_api_config);
+        httpd_register_uri_handler(server, &uri_config);
 
-        // Route: Catch-All (Static Files)
-        // Must be registered LAST so it doesn't "swallow" the APIs
+        // 3. API: Save Configuration
+        httpd_uri_t uri_save = {
+            .uri = "/api/save", .method = HTTP_POST, .handler = api_save_post_handler, .user_ctx = NULL
+        };
+        httpd_register_uri_handler(server, &uri_save);
+
+        // 4. Files: Catch-All (Must be last)
         httpd_uri_t uri_files = {
-            .uri       = "/*", 
-            .method    = HTTP_GET,
-            .handler   = common_get_handler,
-            .user_ctx  = NULL
+            .uri = "/*", .method = HTTP_GET, .handler = common_get_handler, .user_ctx = NULL
         };
         httpd_register_uri_handler(server, &uri_files);
     }
 }
-
