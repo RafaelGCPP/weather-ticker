@@ -60,3 +60,5 @@ sdkconfig
 sdkconfig.old
 dependencies.lock
 managed_components/
+front/config/
+front/weather/
