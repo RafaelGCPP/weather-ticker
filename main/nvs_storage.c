@@ -2,6 +2,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_log.h"
+#include "psk_generator.h"
 #include <string.h>
 
 static const char *TAG = "nvs_storage";
@@ -125,3 +126,80 @@ bool nvs_set_wifi_ssid(const char *ssid) {
 bool nvs_set_wifi_psk(const char *psk) {
     return nvs_set_generic(NVS_KEY_WIFI_PSK, nvs_write_str, psk, "Wi-Fi PSK");
 }
+
+bool nvs_get_weather_city(char *city, size_t max_len) {
+    return nvs_get_str_generic(NVS_KEY_WEATHER_CITY, city, max_len, "Weather City");
+}
+
+bool nvs_get_time_zone(char *time_zone, size_t max_len) {
+    return nvs_get_str_generic(NVS_KEY_TIME_ZONE, time_zone, max_len, "Time Zone");
+}
+
+void get_AP_wpa_info_from_nvs(wpa_info_t *wpa_info)
+{
+    if (!nvs_get_softap_ssid(wpa_info->ssid, sizeof(wpa_info->ssid)))
+    {
+        // Use default SSID
+        strncpy(wpa_info->ssid, DEFAULT_SOFTAP_SSID, sizeof(wpa_info->ssid) - 1);
+        // Save to NVS for next time
+        nvs_set_softap_ssid(wpa_info->ssid);
+    }
+
+    if (!nvs_get_softap_psk(wpa_info->psk, sizeof(wpa_info->psk)))
+    {
+        // Generate random PSK
+        generate_random_psk(wpa_info->psk, SOFTAP_PSK_LENGTH);
+        // Save to NVS for next time
+        nvs_set_softap_psk(wpa_info->psk);
+    }
+}
+
+// function to read all stored information and format it as JSON
+
+void get_config_from_nvs(char *output, size_t max_len)
+{
+    char ap_ssid[MAX_SSID_LEN] = {0};
+    char ap_psk[MAX_PSK_LEN] = {0};
+    char wifi_ssid[MAX_SSID_LEN] = {0};
+    char wifi_psk[MAX_PSK_LEN] = {0};
+    char weather_city[64] = {0};
+    char time_zone[64] = {0};
+
+    bool has_ap_ssid = nvs_get_softap_ssid(ap_ssid, sizeof(ap_ssid));
+    bool has_ap_psk = nvs_get_softap_psk(ap_psk, sizeof(ap_psk));
+    bool has_wifi_ssid = nvs_get_wifi_ssid(wifi_ssid, sizeof(wifi_ssid));
+    bool has_wifi_psk = nvs_get_wifi_psk(wifi_psk, sizeof(wifi_psk));
+    bool has_weather_city = nvs_get_weather_city(weather_city, sizeof(weather_city));
+    bool has_time_zone = nvs_get_time_zone(time_zone, sizeof(time_zone));
+    size_t offset = 0;
+    offset += snprintf(output + offset, max_len - offset, "{");
+    if (has_ap_ssid)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"apSsid\":\"%s\",", ap_ssid);
+    }
+    if (has_ap_psk)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"apPassword\":\"%s\",", ap_psk);
+    }
+    if (has_wifi_ssid)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"wifiSsid\":\"%s\",", wifi_ssid);
+    }
+    if (has_wifi_psk)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"wifiPassword\":\"%s\",", wifi_psk);
+    }
+    if (has_weather_city)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"weatherCity\":\"%s\",", weather_city);
+    }
+    if (has_time_zone)
+    {
+        offset += snprintf(output + offset, max_len - offset, "\"timeZone\":\"%s\",", time_zone);
+    }
+    if (offset > 1 && output[offset - 1] == ',') {
+        output[--offset] = '\0'; // Remove trailing comma
+    }
+    offset += snprintf(output + offset, max_len - offset, "}");
+}
+

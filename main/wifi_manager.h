@@ -3,9 +3,6 @@
 
 #include <stdbool.h>
 
-#define DEFAULT_SOFTAP_SSID "Weather"
-#define SOFTAP_PSK_LENGTH 12
-
 
 /**
  * @brief Initialize and start WiFi manager

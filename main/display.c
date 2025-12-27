@@ -17,6 +17,8 @@ void initialize_display(void)
 
     lcd_init(&disp_handle, true);
 
+    lv_disp_set_rotation(disp_handle, LV_DISP_ROTATION_180);
+    
     xTaskCreatePinnedToCore(ui_update_task, "update_ui", 4096 * 2, NULL, 5, NULL, 1);
 
 }

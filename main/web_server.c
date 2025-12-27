@@ -1,8 +1,10 @@
 #include "web_server.h"
+#include "web_api.h"
 #include "esp_log.h"
 #include "esp_http_server.h"
 #include "esp_littlefs.h"
 #include "esp_vfs.h"
+#include "nvs_storage.h"
 #include "cJSON.h"
 #include <sys/stat.h>
 
@@ -13,75 +15,26 @@ static const char *TAG = "WEB_SERVER";
 // This is the brain that maps URLs to LittleFS folders
 void resolve_filepath(char *filepath, size_t max_len, const char *uri) {
     // 1. Configuration App (Prefixed with /c)
-    // Access: http://esp32/c -> /littlefs/front/config/index.html
+    // Access: http://esp32/c -> /littlefs/config/index.html
     if (strncmp(uri, "/c", 2) == 0) {
         if (strlen(uri) == 2 || strcmp(uri, "/c/") == 0) {
-            snprintf(filepath, max_len, "%s/front/config/index.html", MOUNT_POINT);
+            snprintf(filepath, max_len, "%s/config/index.html", MOUNT_POINT);
         } else {
-            // Remove the "/c" prefix so /c/style.css becomes /front/config/style.css
-            snprintf(filepath, max_len, "%s/front/config%s", MOUNT_POINT, uri + 2);
+            // Remove the "/c" prefix so /c/style.css becomes /config/style.css
+            snprintf(filepath, max_len, "%s/config%s", MOUNT_POINT, uri + 2);
         }
     } 
     // 2. Weather App (Root)
-    // Access: http://esp32/ -> /littlefs/front/weather/index.html
+    // Access: http://esp32/ -> /littlefs/weather/index.html
     else if (strcmp(uri, "/") == 0 || strcmp(uri, "/index.html") == 0) {
-        snprintf(filepath, max_len, "%s/front/weather/index.html", MOUNT_POINT);
+        snprintf(filepath, max_len, "%s/weather/index.html", MOUNT_POINT);
     }
     // 3. Asset Fallback (Everything else defaults to weather app folder)
     else {
-        snprintf(filepath, max_len, "%s/front/weather%s", MOUNT_POINT, uri);
+        snprintf(filepath, max_len, "%s/weather%s", MOUNT_POINT, uri);
     }
 }
 
-// --- API HANDLERS (Matches Svelte Fetch Calls) ---
-
-// GET /api/scan -> Returns available Wi-Fi networks
-static esp_err_t api_scan_get_handler(httpd_req_t *req) {
-    // TODO: Connect to actual Wi-Fi Scan function
-    // For now, return the Mock JSON expected by Svelte
-    const char *json_response = "[\"Home_WiFi\", \"Guest_Network\", \"IoT_Device_AP\"]";
-    
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
-// GET /api/config -> Returns current settings to populate the form
-static esp_err_t api_config_get_handler(httpd_req_t *req) {
-    // TODO: Read from NVS
-    const char *json_response = "{"
-        "\"apSsid\": \"ESP32-Clock\","
-        "\"wifiSsid\": \"My_Home\","
-        "\"weatherCity\": \"Rio de Janeiro,BR\","
-        "\"timeZone\": \"<-03>3\""
-    "}";
-
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
-// POST /api/save -> Receives JSON to save settings
-static esp_err_t api_save_post_handler(httpd_req_t *req) {
-    char buf[512]; // Increased buffer for full config JSON
-    int ret, remaining = req->content_len;
-
-    if (remaining >= sizeof(buf)) {
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    ret = httpd_req_recv(req, buf, remaining);
-    if (ret <= 0) return ESP_FAIL;
-    buf[ret] = '\0';
-
-    ESP_LOGI(TAG, "Saving Config: %s", buf);
-
-    // TODO: Use cJSON_Parse(buf) and save to NVS here
-    
-    httpd_resp_send(req, "{\"status\":\"saved\"}", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
 
 // --- GENERIC FILE SERVER ---
 

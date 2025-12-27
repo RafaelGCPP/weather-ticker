@@ -1,6 +1,7 @@
 #ifndef NVS_STORAGE_H
 #define NVS_STORAGE_H
 
+#include "typedefs.h"
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -9,6 +10,11 @@
 #define NVS_KEY_SOFTAP_PSK "softap_psk"
 #define NVS_KEY_WIFI_SSID "wifi_ssid"
 #define NVS_KEY_WIFI_PSK "wifi_psk"
+#define NVS_KEY_WEATHER_CITY "weather_city"
+#define NVS_KEY_TIME_ZONE "time_zone"
+
+#define DEFAULT_SOFTAP_SSID "Weather"
+#define SOFTAP_PSK_LENGTH 12
 
 /**
  * @brief Initialize NVS storage
@@ -84,5 +90,38 @@ bool nvs_set_wifi_ssid(const char *ssid);
  * @return true on success, false on failure
  */
 bool nvs_set_wifi_psk(const char *psk);
+
+/**
+ * @brief Get Weather City from NVS
+ * 
+ * @param city Buffer to store the city name
+ * @param max_len Maximum length of the buffer
+ * @return true if city was read, false if not found or error
+ */
+bool nvs_get_weather_city(char *city, size_t max_len);
+
+/**
+ * @brief Get Time Zone from NVS
+ * 
+ * @param time_zone Buffer to store the time zone
+ * @param max_len Maximum length of the buffer
+ * @return true if time zone was read, false if not found or error
+ */
+bool nvs_get_time_zone(char *time_zone, size_t max_len);
+
+/**
+ * @brief Retrieve SoftAP WPA information from NVS
+ * 
+ * @param wpa_info Pointer to wpa_info_t structure to fill
+ */
+void get_AP_wpa_info_from_nvs(wpa_info_t *wpa_info);
+
+/**
+ * @brief Get full configuration from NVS as JSON string
+ * 
+ * @param output Buffer to store the JSON string
+ * @param max_len Maximum length of the buffer
+ */
+void get_config_from_nvs(char *output, size_t max_len);
 
 #endif // NVS_STORAGE_H
