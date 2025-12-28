@@ -1,15 +1,15 @@
-#include "typedefs.h"
+#include <stddef.h>
+#include <string.h>
 #include "wifi_manager.h"
 #include "nvs_storage.h"
-#include "psk_generator.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
-#include <string.h>
 #include "ui.h"
+
 
 static const char *TAG = "wifi_manager";
 
@@ -23,7 +23,6 @@ static bool s_is_softap_mode = false;
 
 static void wifi_sta_event_handler(int32_t event_id, void *event_data);
 static void wifi_ap_event_handler(int32_t event_id, void *event_data);
-static void get_wpa_info_from_nvs(wpa_info_t *wpa_info);
 
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -99,7 +98,7 @@ static void wifi_ap_event_handler(int32_t event_id, void *event_data)
         ESP_LOGI(TAG, "Station " MACSTR " left, AID=%d",
                  MAC2STR(event->mac), event->aid);
         wpa_info_t softap_info;
-        get_wpa_info_from_nvs(&softap_info);
+        get_AP_wpa_info_from_nvs(&softap_info);
         ui_show_AP_qr(softap_info.ssid, softap_info.psk);
     }
 }
@@ -131,31 +130,14 @@ static bool wifi_init_common(void)
     return true;
 }
 
-static void get_wpa_info_from_nvs(wpa_info_t *wpa_info)
-{
-    if (!nvs_get_softap_ssid(wpa_info->ssid, sizeof(wpa_info->ssid)))
-    {
-        // Use default SSID
-        strncpy(wpa_info->ssid, DEFAULT_SOFTAP_SSID, sizeof(wpa_info->ssid) - 1);
-        // Save to NVS for next time
-        nvs_set_softap_ssid(wpa_info->ssid);
-    }
 
-    if (!nvs_get_softap_psk(wpa_info->psk, sizeof(wpa_info->psk)))
-    {
-        // Generate random PSK
-        generate_random_psk(wpa_info->psk, SOFTAP_PSK_LENGTH);
-        // Save to NVS for next time
-        nvs_set_softap_psk(wpa_info->psk);
-    }
-}
 
 bool wifi_manager_start_softap(void)
 {
 
     // Try to get SoftAP credentials from NVS
     wpa_info_t softap_info;
-    get_wpa_info_from_nvs(&softap_info);
+    get_AP_wpa_info_from_nvs(&softap_info);
 
     esp_netif_create_default_wifi_ap();
 

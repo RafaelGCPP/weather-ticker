@@ -1,0 +1,82 @@
+[
+  {
+    "ssid": "My_Home_WiFi",
+    "rssi": -41,
+    "auth": 3
+  },
+  {
+    "ssid": "PatyeRafa",
+    "rssi": -42,
+    "auth": 3
+  },
+  {
+    "ssid": "CLARO_2G4AEC64",
+    "rssi": -66,
+    "auth": 3
+  },
+  {
+    "ssid": "DIRECT-E7-HP Smart Tank 510",
+    "rssi": -73,
+    "auth": 3
+  },
+  {
+    "ssid": "TIRADENTES OI FIBRA 2G",
+    "rssi": -75,
+    "auth": 3
+  },
+  {
+    "ssid": "Bruno_2.4G",
+    "rssi": -79,
+    "auth": 4
+  },
+  {
+    "ssid": "PatyeRafa",
+    "rssi": -79,
+    "auth": 3
+  },
+  {
+    "ssid": "#CLARO-WIFI",
+    "rssi": -87,
+    "auth": 0
+  },
+  {
+    "ssid": "LUZIOWIFI",
+    "rssi": -89,
+    "auth": 4
+  },
+  {
+    "ssid": "VIVOFIBRA-E320",
+    "rssi": -89,
+    "auth": 3
+  },
+  {
+    "ssid": "LOVINHOS OI FIBRA 2G",
+    "rssi": -92,
+    "auth": 3
+  },
+  {
+    "ssid": "PatyeRafa",
+    "rssi": -92,
+    "auth": 3
+  },
+  {
+    "ssid": "starnet",
+    "rssi": -92,
+    "auth": 4
+  },
+  {
+    "ssid": "StavaleHome2.4",
+    "rssi": -92,
+    "auth": 3
+  },
+  {
+    "ssid": "SOL PARA MENINAS",
+    "rssi": -94,
+    "auth": 3
+  },
+  {
+    "ssid": "Ferreira_2G/5G-IoT",
+    "rssi": -95,
+    "auth": 2
+  }
+]

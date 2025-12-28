@@ -6,7 +6,7 @@
     "--compile-commands-dir=e:\\work\\esp32\\weather-ticker\\build"
   ],
   "idf.portWin": "COM5",
-  "idf.flashType": "JTAG",
+  "idf.flashType": "UART",
   "idf.espIdfPathWin": "d:\\esp\\v5.5.1\\esp-idf",
   "idf.toolsPathWin": "D:\\esp\\esp-tools",
   "idf.pythonInstallPath": "d:\\esp\\esp-tools\\tools\\idf-python\\3.11.2\\python.exe",

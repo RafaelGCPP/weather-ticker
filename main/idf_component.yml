@@ -16,3 +16,4 @@ dependencies:
   #   public: true
   espressif/esp_lvgl_port: '*'
   joltwallet/littlefs: '*'
+  espressif/cjson: '*'
