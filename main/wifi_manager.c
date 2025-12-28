@@ -2,6 +2,7 @@
 #include <string.h>
 #include "wifi_manager.h"
 #include "nvs_storage.h"
+#include "ntp_manager.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -42,6 +43,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         wifi_sta_event_handler(event_id, event_data);
+
+        ntp_manager_init();
     }
 }
 

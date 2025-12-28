@@ -34,3 +34,14 @@ void ui_show_config_qrcode(const char *url)
         xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
     }
 }
+
+void ui_show_clock(void)
+{
+    if (ui_queue != NULL)
+    {
+        ui_msg_t msg;
+        msg.cmd = UI_CMD_SHOW_CLOCK;
+
+        xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
+    }
+}

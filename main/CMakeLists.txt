@@ -8,4 +8,5 @@ idf_component_register(SRCS "wifi_scan.c"
                             "display.c"
                             "ui.c"
                             "ui_events.c"
+                            "ntp_manager.c"
                     INCLUDE_DIRS ".")

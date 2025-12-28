@@ -9,30 +9,32 @@
 
 static const char *TAG = "main";
 
-void app_main(void) {
+void app_main(void)
+{
     ESP_LOGI(TAG, "Weather Ticker - Starting up");
     ESP_LOGI(TAG, "Chip: %s", CONFIG_IDF_TARGET);
-   
-    
+
     // Initialize Display and start Update task
     initialize_display();
 
     // Initialize NVS
-    if (!nvs_storage_init()) {
+    if (!nvs_storage_init())
+    {
         ESP_LOGE(TAG, "Failed to initialize NVS storage");
         return;
     }
-    
+
     // Initialize Wi-Fi Manager
-    if (!wifi_manager_init()) {
+    if (!wifi_manager_init())
+    {
         ESP_LOGE(TAG, "Failed to initialize Wi-Fi Manager");
         return;
     }
-    
+
     web_server_init();
     // Main loop
-    while (1) {
+    while (1)
+    {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
-
