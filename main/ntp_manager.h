@@ -1,5 +1,6 @@
 #pragma once
-
+#include <stddef.h>
+#include <stdbool.h>
 #define NTP_SYNC_INTERVAL_MS (10 * 60 * 1000) // 10 minutes
 
 /**
@@ -20,4 +21,4 @@ void ntp_manager_sync(void);
  * @param buffer Buffer where the formatted string will be stored
  * @param max_len Maximum buffer size
  */
-void get_time(bool local, char *buffer, size_t max_len)
+void get_time(bool local, char *buffer, size_t max_len);

@@ -1,5 +1,6 @@
 #include <esp_log.h>
 #include <string.h>
+#include <time.h>
 #include "ui.h"
 #include "ui_events.h"
 #include "t_display_s3.h"
@@ -8,6 +9,13 @@
 static void show_AP_qrcode(const char *ssid, const char *password);
 static void show_config_qrcode(const char *url);
 static void show_qrcode();
+static void show_connecting_message(const char *ssid);
+static void tick_clock(void);
+static void setup_clock_screen(void);
+
+// static variables for clock update
+static bool s_show_clock_mode = false;
+static int s_last_detected_second = -1;
 
 // Constants
 static const char *TAG = "UI";
@@ -39,28 +47,31 @@ void update_ui(void)
         switch (msg.cmd)
         {
         case UI_CMD_SHOW_AP_QR:
+            s_show_clock_mode = false;
             show_AP_qrcode(msg.payload.wpa_data.ssid, msg.payload.wpa_data.psk);
             break;
 
         case UI_CMD_SHOW_CONFIG_QR:
+            s_show_clock_mode = false;
             show_config_qrcode(msg.payload.url);
             break;
 
         case UI_CMD_SHOW_CLOCK:
-            lv_obj_clean(lv_screen_active());
-            label_status = lv_label_create(lv_screen_active());
-            lv_label_set_text(label_status, "Connected!\nClock coming soon...");
-            lv_obj_align(label_status, LV_ALIGN_CENTER, 0, 0);
+            setup_clock_screen();
             break;
 
         case UI_CMD_WIFI_CONNECTING:
-            if (label_status)
-                lv_label_set_text_fmt(label_status, "Connecting to\n%s...", msg.payload.wpa_data.ssid);
+            s_show_clock_mode = false; 
+            show_connecting_message(msg.payload.wpa_data.ssid);
             break;
 
         default:
             break;
         }
+    }
+    if (s_show_clock_mode)
+    {
+        tick_clock();
     }
 }
 
@@ -134,7 +145,6 @@ static void show_config_qrcode(const char *url)
     lv_obj_align_to(label_status, qr_code_obj, LV_ALIGN_OUT_RIGHT_MID, 15, 0);
 }
 
-
 // Helper function to create/update QR Code
 static void show_qrcode()
 {
@@ -162,4 +172,66 @@ static void show_qrcode()
     // --- RIGHT SIDE: TEXT ---
 
     label_status = lv_label_create(lv_screen_active());
+}
+
+static void setup_clock_screen(void)
+{
+    // 1. Limpa a tela (remove QR codes antigos)
+    lv_obj_clean(lv_screen_active());
+
+    // 2. Cria o label principal
+    label_status = lv_label_create(lv_screen_active());
+
+    // Configuração visual básica (depois podemos melhorar fontes)
+    lv_obj_set_style_text_color(label_status, lv_color_white(), 0);
+    lv_obj_set_style_text_align(label_status, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(label_status, LV_ALIGN_CENTER, 0, 0);
+
+    // 3. Reseta o estado para forçar atualização imediata
+    s_last_detected_second = -1;
+    s_show_clock_mode = true;
+}
+
+// --- NOVA FUNÇÃO: Atualiza os números (Tick) ---
+static void tick_clock(void)
+{
+    time_t now;
+    struct tm timeinfo;
+
+    time(&now);
+    localtime_r(&now, &timeinfo);
+
+    // Só redesenha se o segundo mudou (evita processamento inútil a cada 100ms)
+    if (timeinfo.tm_sec != s_last_detected_second)
+    {
+        s_last_detected_second = timeinfo.tm_sec;
+
+        if (label_status)
+        {
+            // Formato: 14:30:05 \n 28/12/2025
+            lv_label_set_text_fmt(label_status, "%02d:%02d:%02d\n%02d/%02d/%04d",
+                                  timeinfo.tm_hour,
+                                  timeinfo.tm_min,
+                                  timeinfo.tm_sec,
+                                  timeinfo.tm_mday,
+                                  timeinfo.tm_mon + 1, // Meses são 0-11
+                                  timeinfo.tm_year + 1900);
+        }
+    }
+}
+
+static void show_connecting_message(const char *ssid)
+{
+    // 1. Clear the screen
+    lv_obj_clean(lv_screen_active());
+
+    // 2. Create the label
+    label_status = lv_label_create(lv_screen_active());
+
+    // 3. Set the text
+    lv_label_set_text_fmt(label_status, "Connecting to\n%s...", ssid);
+
+    // 4. Style the text
+    lv_obj_set_style_text_color(label_status, lv_color_white(), 0); // White text
+    lv_obj_align(label_status, LV_ALIGN_CENTER, 0, 0);
 }
