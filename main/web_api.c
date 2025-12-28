@@ -3,8 +3,7 @@
 #include "esp_log.h"
 #include "nvs_storage.h"
 #include "wifi_scan.h"
-
-static const char *TAG = "WEB_API";
+#include "cJSON.h"
 
 // --- API HANDLERS (Matches Svelte Fetch Calls) ---
 
@@ -34,7 +33,7 @@ esp_err_t api_config_get_handler(httpd_req_t *req) {
 
 // POST /api/save -> Receives JSON to save settings
 esp_err_t api_save_post_handler(httpd_req_t *req) {
-    char buf[512]; // Increased buffer for full config JSON
+    char buf[1024]; 
     int ret, remaining = req->content_len;
 
     if (remaining >= sizeof(buf)) {
@@ -42,13 +41,26 @@ esp_err_t api_save_post_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
 
+    // Read the Data
     ret = httpd_req_recv(req, buf, remaining);
-    if (ret <= 0) return ESP_FAIL;
-    buf[ret] = '\0';
+    if (ret <= 0) {
+        return ESP_FAIL; // Connection closed or error
+    }
+    buf[ret] = '\0'; // Null-terminate strictly
 
-    ESP_LOGI(TAG, "Saving Config: %s", buf);
+    // Parse JSON
+    cJSON *root = cJSON_Parse(buf);
+    if (root == NULL) {
+        ESP_LOGE("SERVER", "Failed to parse JSON");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
 
-    // TODO: Use cJSON_Parse(buf) and save to NVS here
+    //  Save settings from JSON to NVS
+    nvs_save_config_from_json(root);
+
+    // Clean up
+    cJSON_Delete(root);
     
     httpd_resp_send(req, "{\"status\":\"saved\"}", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
