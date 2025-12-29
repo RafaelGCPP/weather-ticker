@@ -1,4 +1,7 @@
-idf_component_register(SRCS "ui_clock.c" 
+idf_component_register(SRCS "montserrat_sb14px.c" 
+                            "barlow_condensed_sb42px.c" 
+                            "barlow_condensed_sb24px.c" 
+                            "ui_clock.c" 
                             "ui_qrcode.c" 
                             "wifi_scan.c" 
                             "web_api.c" 

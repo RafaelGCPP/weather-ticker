@@ -41,6 +41,7 @@ void ui_show_clock(void)
     {
         ui_msg_t msg;
         msg.cmd = UI_CMD_SHOW_CLOCK;
+        msg.payload.url[0] = 0; // Not used
 
         xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
     }
