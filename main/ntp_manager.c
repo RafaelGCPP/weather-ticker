@@ -16,7 +16,6 @@ static char s_custom_ntp_server[64] = {0};
 void time_sync_notification_cb(struct timeval *tv)
 {
     ESP_LOGI(TAG, "Clock synchronized via NTP!");
-    ui_show_clock();
 }
 
 void ntp_manager_init(void)
@@ -71,6 +70,8 @@ void ntp_manager_init(void)
     esp_sntp_set_sync_interval(NTP_SYNC_INTERVAL_MS); 
 
     esp_sntp_init();
+    ui_show_clock();
+
 }
 
 void ntp_manager_sync(void) {
