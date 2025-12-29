@@ -1,4 +1,6 @@
-idf_component_register(SRCS "ui_qrcode.c" "wifi_scan.c" 
+idf_component_register(SRCS "ui_clock.c" 
+                            "ui_qrcode.c" 
+                            "wifi_scan.c" 
                             "web_api.c" 
                             "web_server.c" 
                             "main.c"
