@@ -11,7 +11,7 @@ static lv_obj_t *label_weekday = NULL; // Refactor later...
 static lv_obj_t *label_date = NULL;    // Refactor later...
 
 static const int32_t col_dsc[] = {150, 170, LV_GRID_TEMPLATE_LAST}; /* 2 columns with 150- and 170-px width */
-static const int32_t row_dsc[] = {170, LV_GRID_TEMPLATE_LAST};      /* `1 170-px tall rows */
+static const int32_t row_dsc[] = {120,50, LV_GRID_TEMPLATE_LAST};      /* `1 170-px tall rows */
 
 LV_FONT_DECLARE(barlow_condensed_sb42px); // Declare custom font
 LV_FONT_DECLARE(montserrat_sb14px);          // Declare custom font
@@ -37,7 +37,9 @@ void setup_clock_screen(void)
     lv_obj_t *left_cont = lv_obj_create(cont);
     lv_obj_set_grid_cell(left_cont, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_set_style_bg_opa(left_cont, LV_OPA_TRANSP, 0); // Transparent background
-    lv_obj_set_style_border_width(left_cont, 0, 0);
+    lv_obj_set_style_border_width(left_cont, 1, 0);
+    lv_obj_set_style_border_side(left_cont, LV_BORDER_SIDE_RIGHT | LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_radius(left_cont, 0, 0); 
     lv_obj_set_style_pad_all(left_cont, 0, 0);
     lv_obj_set_layout(left_cont, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(left_cont, LV_FLEX_FLOW_COLUMN);
