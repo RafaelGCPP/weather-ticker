@@ -2,6 +2,7 @@
 #include <string.h>
 #include "wifi_manager.h"
 #include "nvs_storage.h"
+#include "ntp_manager.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -24,6 +25,7 @@ static bool s_is_softap_mode = false;
 static void wifi_sta_event_handler(int32_t event_id, void *event_data);
 static void wifi_ap_event_handler(int32_t event_id, void *event_data);
 
+static wpa_info_t softap_info;
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -41,6 +43,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         wifi_sta_event_handler(event_id, event_data);
+
+        ntp_manager_init();
     }
 }
 
@@ -75,31 +79,44 @@ static void wifi_sta_event_handler(int32_t event_id, void *event_data)
 
 static void wifi_ap_event_handler(int32_t event_id, void *event_data)
 {
-    if (event_id == WIFI_EVENT_AP_STACONNECTED)
-    {
+    // 1. Log the specific event (Join or Leave) for debugging
+    if (event_id == WIFI_EVENT_AP_STACONNECTED) {
         wifi_event_ap_staconnected_t *event = (wifi_event_ap_staconnected_t *)event_data;
-        ESP_LOGI(TAG, "Station " MACSTR " joined, AID=%d",
-                 MAC2STR(event->mac), event->aid);
+        ESP_LOGI(TAG, "Station " MACSTR " joined, AID=%d", MAC2STR(event->mac), event->aid);
+    } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
+        wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
+        ESP_LOGI(TAG, "Station " MACSTR " left, AID=%d", MAC2STR(event->mac), event->aid);
+    }
 
-        // Get local IP address for SoftAP interface
+    // 2. Get the real-time list of connected clients
+    wifi_sta_list_t wifi_sta_list;
+    wifi_sta_list.num = 0;
+    esp_wifi_ap_get_sta_list(&wifi_sta_list);
+    ESP_LOGI(TAG, "Total clients connected: %d", wifi_sta_list.num);
+
+    // 3. Decide UI based on total count
+    if (wifi_sta_list.num == 0) {
+        // CASE: Empty House. Show Credentials to attract new users.
+       
+        // Show the Credentials QR
+        ui_show_AP_qr(softap_info.ssid, softap_info.psk);
+    } 
+    else {
+        // CASE: At least one person is connected. Show them the Config URL.
+        
         esp_netif_ip_info_t ip_info;
         esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+        
         if (netif && esp_netif_get_ip_info(netif, &ip_info) == ESP_OK) {
             char url[64];
+            // Format: http://192.168.4.1/c
             snprintf(url, sizeof(url), "http://" IPSTR "/c", IP2STR(&ip_info.ip));
+            
+            // Show the URL QR
             ui_show_config_qrcode(url);
         } else {
             ESP_LOGE(TAG, "Failed to get SoftAP IP info");
         }
-    }
-    else if (event_id == WIFI_EVENT_AP_STADISCONNECTED)
-    {
-        wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
-        ESP_LOGI(TAG, "Station " MACSTR " left, AID=%d",
-                 MAC2STR(event->mac), event->aid);
-        wpa_info_t softap_info;
-        get_AP_wpa_info_from_nvs(&softap_info);
-        ui_show_AP_qr(softap_info.ssid, softap_info.psk);
     }
 }
 
@@ -136,7 +153,6 @@ bool wifi_manager_start_softap(void)
 {
 
     // Try to get SoftAP credentials from NVS
-    wpa_info_t softap_info;
     get_AP_wpa_info_from_nvs(&softap_info);
 
     esp_netif_create_default_wifi_ap();
@@ -221,6 +237,8 @@ bool wifi_manager_connect(const char *ssid, const char *password)
 
     strncpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid) - 1);
     strncpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password) - 1);
+
+    ui_show_connecting(ssid);
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));

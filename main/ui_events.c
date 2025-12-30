@@ -34,3 +34,29 @@ void ui_show_config_qrcode(const char *url)
         xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
     }
 }
+
+void ui_show_clock(void)
+{
+    if (ui_queue != NULL)
+    {
+        ui_msg_t msg;
+        msg.cmd = UI_CMD_SHOW_CLOCK;
+        msg.payload.url[0] = 0; // Not used
+
+        xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
+    }
+}
+
+void ui_show_connecting(const char *ssid)
+{
+    if (ui_queue != NULL)
+    {
+        ui_msg_t msg;
+        msg.cmd = UI_CMD_WIFI_CONNECTING;
+
+        strncpy(msg.payload.wpa_data.ssid, ssid, sizeof(msg.payload.wpa_data.ssid) - 1);
+        msg.payload.wpa_data.ssid[sizeof(msg.payload.wpa_data.ssid) - 1] = 0;
+
+        xQueueSend(ui_queue, &msg, pdMS_TO_TICKS(10));
+    }
+}
