@@ -6,11 +6,10 @@
 #include "esp_log.h"
 
 static const char *TAG = "OPENWEATHER_SERVICE";
-static const int OPENWEATHER_UPDATE_INTERVAL_MS = 1 * 60 * 1000; // 60 minutes
+static const int OPENWEATHER_UPDATE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 OpenWeatherData *s_weather_data = NULL;
 SemaphoreHandle_t s_weather_mutex = NULL;
-
 
 void openweather_service_init()
 {
@@ -19,8 +18,8 @@ void openweather_service_init()
     {
         ESP_LOGE(TAG, "Failed to create weather mutex");
         return;
-    }   
-    s_weather_data=malloc(sizeof(OpenWeatherData));
+    }
+    s_weather_data = malloc(sizeof(OpenWeatherData));
     if (s_weather_data == NULL)
     {
         ESP_LOGE(TAG, "Failed to allocate memory for weather data");
@@ -52,8 +51,8 @@ void openweather_service_task(void *pvParameters)
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(OPENWEATHER_UPDATE_INTERVAL_MS)); // 60 minutes
         fetch_and_process_weather_data(coord, api_key);
+        vTaskDelay(pdMS_TO_TICKS(OPENWEATHER_UPDATE_INTERVAL_MS)); // 60 minutes
     }
 }
 
@@ -74,7 +73,7 @@ void openweather_unlock()
     }
 }
 
-OpenWeatherData* openweather_get_data()
+OpenWeatherData *openweather_get_data()
 {
     return s_weather_data;
 }
