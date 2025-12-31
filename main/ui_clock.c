@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include "ui_internal.h"
+#include "openweather_service.h"
 
 bool s_show_clock_mode = false;
 int s_last_detected_second = -1;
@@ -9,12 +10,13 @@ int s_last_detected_second = -1;
 static lv_obj_t *label_hhmmss = NULL;  // Refactor later...
 static lv_obj_t *label_weekday = NULL; // Refactor later...
 static lv_obj_t *label_date = NULL;    // Refactor later...
+static lv_obj_t *right_label = NULL;   // Placeholder for right panel
 
 static const int32_t col_dsc[] = {150, 170, LV_GRID_TEMPLATE_LAST}; /* 2 columns with 150- and 170-px width */
-static const int32_t row_dsc[] = {120,50, LV_GRID_TEMPLATE_LAST};      /* `1 170-px tall rows */
+static const int32_t row_dsc[] = {120, 50, LV_GRID_TEMPLATE_LAST};  /* `1 170-px tall rows */
 
 LV_FONT_DECLARE(barlow_condensed_sb42px); // Declare custom font
-LV_FONT_DECLARE(montserrat_sb14px);          // Declare custom font
+LV_FONT_DECLARE(montserrat_sb14px);       // Declare custom font
 
 void setup_clock_screen(void)
 {
@@ -39,7 +41,7 @@ void setup_clock_screen(void)
     lv_obj_set_style_bg_opa(left_cont, LV_OPA_TRANSP, 0); // Transparent background
     lv_obj_set_style_border_width(left_cont, 1, 0);
     lv_obj_set_style_border_side(left_cont, LV_BORDER_SIDE_RIGHT | LV_BORDER_SIDE_BOTTOM, 0);
-    lv_obj_set_style_radius(left_cont, 0, 0); 
+    lv_obj_set_style_radius(left_cont, 0, 0);
     lv_obj_set_style_pad_all(left_cont, 0, 0);
     lv_obj_set_layout(left_cont, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(left_cont, LV_FLEX_FLOW_COLUMN);
@@ -58,7 +60,7 @@ void setup_clock_screen(void)
     lv_obj_set_style_text_font(label_date, &lv_font_montserrat_14, 0);
 
     // right panel with just a label as placeholder
-    lv_obj_t *right_label = lv_label_create(cont);
+    right_label = lv_label_create(cont);
     lv_obj_set_grid_cell(right_label, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_label_set_text(right_label, "Placeholder\nfor weather\nor other info");
     lv_obj_set_style_text_color(right_label, lv_color_white(), 0);
@@ -104,6 +106,20 @@ void tick_clock(void)
                                   timeinfo.tm_mday,
                                   timeinfo.tm_mon + 1, // Meses são 0-11
                                   timeinfo.tm_year + 1900);
+        }
+
+        if (openweather_lock(50))
+        {
+            OpenWeatherData *weather_data = openweather_get_data();
+            if (weather_data != NULL)
+            {
+                lv_label_set_text_fmt(right_label,
+                                      "Temp: %.1f C\nHumidity: %d%%\n%s",
+                                      weather_data->current.temperature,
+                                      weather_data->current.atmospheric.humidity,
+                                      weather_data->current.weather.main);
+            }
+            openweather_unlock();
         }
     }
 }

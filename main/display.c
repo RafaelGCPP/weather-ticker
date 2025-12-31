@@ -6,7 +6,7 @@
 #include "ui.h"
 #include "ui_events.h"
 
-
+static const int DISPLAY_UPDATE_INTERVAL_MS = 100;
 static lv_disp_t *disp_handle = NULL;
 
 static void ui_update_task(void *pvParam);
@@ -32,7 +32,7 @@ static void ui_update_task(void *pvParam) {
 
     while (1) {
         // update the ui every 100 milliseconds
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(DISPLAY_UPDATE_INTERVAL_MS));
         if (lvgl_port_lock(0)) {
             // update ui under lvgl semaphore lock
             update_ui();
