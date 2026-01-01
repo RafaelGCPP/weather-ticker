@@ -73,7 +73,15 @@ void openweather_unlock()
     }
 }
 
-OpenWeatherData *openweather_get_data()
+CurrentWeather *openweather_get_current_data()
 {
-    return s_weather_data;
+    return &(s_weather_data->current);
+}
+
+void openweather_get_scaled_minutely_precipitation_data(int32_t *data_out)
+{
+    for (int i = 0; i < NUM_MINUTELY; i++)
+    {
+        data_out[i] = (int32_t)(s_weather_data->minutely[i].precipitation * 60); // Scale to mm/h
+    }
 }

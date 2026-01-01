@@ -1,4 +1,5 @@
 #pragma once
+#include <esp_lvgl_port.h>
 
 void show_connecting_message(const char *ssid);
 
@@ -7,6 +8,10 @@ void show_config_qrcode(const char *url);
 void show_qrcode();
 
 void setup_clock_screen(void);
+void setup_clock_panel(lv_obj_t *parent);
+void setup_weather_panel(lv_obj_t *parent);
+void setup_precipitation_panel(lv_obj_t *parent);
+
 void tick_clock(void);
 
 extern bool s_show_clock_mode;
