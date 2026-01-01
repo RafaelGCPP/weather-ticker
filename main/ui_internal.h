@@ -16,3 +16,12 @@ void tick_clock(void);
 
 extern bool s_show_clock_mode;
 extern int s_last_detected_second;
+
+extern lv_obj_t *label_hhmmss;
+extern lv_obj_t *label_weekday;
+extern lv_obj_t *label_date;
+
+extern lv_obj_t *precipitation_chart;
+extern lv_chart_series_t *precipitation_series;
+
+extern lv_obj_t *right_label;

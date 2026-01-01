@@ -1,4 +1,4 @@
-idf_component_register(SRCS "http_buffer_download.c" "openweather_service.c" 
+idf_component_register(SRCS "ui_weather.c" "ui_precipitation.c" "http_buffer_download.c" "openweather_service.c" 
                             "openweather_parser.c" 
                             "url_encode.c" 
                             "openweather_client.c" 
