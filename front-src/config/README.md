@@ -1,38 +1,41 @@
-# sv
+# Configuration Page Source
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This directory contains the source code for the configuration page of the Weather Ticker project.
 
-## Creating a project
+## Technology Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+This project is built using [Svelte](https://svelte.dev/) and [Vite](https://vitejs.dev/). It compiles into a static single-page application that is served by the ESP32.
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Project Setup
 
-# create a new project in my-app
-npx sv create my-app
+Before running any commands, ensure you have Node.js installed and install the dependencies:
+
+```bash
+npm install
 ```
 
-## Developing
+## Development
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+To run the configuration page locally for development and testing:
 
-```sh
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+This will start a local development server (usually at http://localhost:5173).
 
-To create a production version of your app:
+## Deployment
 
-```sh
-npm run build
+To build the project and add it to the main firmware project, run:
+
+```bash
+npm run deploy
 ```
 
-You can preview the production build with `npm run preview`.
+*What this does:*
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+1) Builds the Svelte application using Vite.
+2) Uses shx (for cross-platform compatibility on Windows/Linux) to copy the build artifacts.
+3) Places the files into ../../front/config,
+
+where they will be picked up and packed into the LittleFS partition during the firmware build.
