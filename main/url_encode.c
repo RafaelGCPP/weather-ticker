@@ -14,35 +14,32 @@ int is_url_safe(char ch)
     return 0;
 }
 
-void url_encode(char *str)
+void url_encode(const char *src, char *dst, size_t dst_size)
 {
-    if (str == NULL)
-        return;
-
-    size_t len = strlen(str);
-
-    char *encoded = (char *)malloc(len * 3 + 1);
-    if (encoded == NULL)
+    if (src == NULL || dst == NULL || dst_size == 0)
         return;
 
     const char *hex = "0123456789ABCDEF";
     size_t pos = 0;
+    size_t len = strlen(src);
 
-    for (size_t i = 0; i < len; i++)
+    for (size_t i = 0; i < len && pos < dst_size - 1; i++)
     {
-        if (is_url_safe(str[i]))
+        if (is_url_safe(src[i]))
         {
-            encoded[pos++] = str[i];
+            dst[pos++] = src[i];
+        }
+        else if (pos < dst_size - 3)  // Precisa de 3 chars (%XX)
+        {
+            dst[pos++] = '%';
+            dst[pos++] = hex[(src[i] >> 4) & 0x0F];
+            dst[pos++] = hex[src[i] & 0x0F];
         }
         else
         {
-            encoded[pos++] = '%';
-            encoded[pos++] = hex[(str[i] >> 4) & 0x0F];
-            encoded[pos++] = hex[str[i] & 0x0F];
+            break;  // Não cabe mais
         }
     }
 
-    encoded[pos] = '\0';
-    strcpy(str, encoded); // Copia de volta para str
-    free(encoded);
+    dst[pos] = '\0';
 }

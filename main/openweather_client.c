@@ -13,7 +13,7 @@ static const char GEOCODING_API_PATH[] = "geo/1.0/direct";
 
 Coordinates get_coordinates_from_geocode(const char *api_key)
 {
-    char location[384];
+    char location[128];
     Coordinates coord = {0};
 
     if (!nvs_get_weather_city(location, sizeof(location)))
@@ -22,15 +22,22 @@ Coordinates get_coordinates_from_geocode(const char *api_key)
         return coord;
     }
 
-    url_encode(location);
+    char *encoded_location = malloc(384);
+    if (!encoded_location) {
+        ESP_LOGE(TAG, "Failed to allocate memory for encoded location");
+        return coord;
+    }
+
+    url_encode(location, encoded_location, 384);
 
     char url[512];
-    char *response_buffer = malloc(4096);
+    char *response_buffer = malloc(8192);
 
     snprintf(url, sizeof(url), "%s%s?q=%s&limit=1&appid=%s",
-             OW_BASE_URL, GEOCODING_API_PATH, location, api_key);
+             OW_BASE_URL, GEOCODING_API_PATH, encoded_location, api_key);
+    free(encoded_location);
 
-    if (http_download_buffer(url, &response_buffer, 4096, NULL) != ESP_OK)
+    if (http_download_buffer(url, &response_buffer, 8192, NULL) != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to download geocoding data");
         free(response_buffer);
