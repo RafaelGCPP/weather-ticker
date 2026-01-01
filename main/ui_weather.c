@@ -1,9 +1,19 @@
 #include <esp_lvgl_port.h>
 #include <string.h>
+#include "esp_log.h"
+#include "esp_heap_caps.h"
 #include "ui_internal.h"
 #include "openweather_service.h"
 
-lv_obj_t *right_label = NULL;   
+static const char *TAG = "UI_WEATHER";
+
+lv_obj_t *right_label = NULL;
+
+static const int32_t col_dsc[] = {60, 30, 40, 40, LV_GRID_TEMPLATE_LAST};
+static const int32_t row_dsc[] = {20, 20, 20, 20, 20, 20, LV_GRID_TEMPLATE_LAST};
+
+LV_FONT_DECLARE(barlow_condensed_sb42px);
+LV_FONT_DECLARE(barlow_condensed_sb24px);
 
 void setup_weather_panel(lv_obj_t *parent)
 {
@@ -12,17 +22,26 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_obj_set_grid_cell(right_cont, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_set_style_bg_opa(right_cont, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(right_cont, 0, 0);
-    lv_obj_set_style_border_side(right_cont, LV_BORDER_SIDE_NONE, 0);
-    lv_obj_set_style_border_color(right_cont, lv_color_hex(0x404040), 0);
     lv_obj_set_style_radius(right_cont, 0, 0);
     lv_obj_set_style_pad_all(right_cont, 0, 0);
-    lv_obj_set_layout(right_cont, LV_LAYOUT_FLEX);
-    lv_obj_set_flex_flow(right_cont, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_flex_align(right_cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(right_cont, 0, 0);
+    lv_obj_set_layout(right_cont, LV_LAYOUT_GRID);
+    lv_obj_set_style_grid_column_dsc_array(right_cont, col_dsc, 0);
+    lv_obj_set_style_grid_row_dsc_array(right_cont, row_dsc, 0);
     lv_obj_set_scrollbar_mode(right_cont, LV_SCROLLBAR_MODE_OFF);
+    
 
-    right_label = lv_label_create(right_cont);
-    lv_label_set_text(right_label, "Loading...");
-    lv_obj_set_style_text_color(right_label, lv_color_white(), 0);
-    lv_obj_set_style_text_font(right_label, &lv_font_montserrat_14, 0);
+    lv_obj_t *temp_label = lv_label_create(right_cont);
+    lv_label_set_recolor(temp_label, true);
+    lv_obj_set_grid_cell(temp_label, LV_GRID_ALIGN_END, 1, 2, LV_GRID_ALIGN_CENTER, 0, 2);
+    lv_label_set_text(temp_label, "#FFFF00 25.3#°C");
+    lv_obj_set_style_text_color(temp_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(temp_label, &barlow_condensed_sb24px, 0);
+
+    lv_obj_t *feels_label = lv_label_create(right_cont);
+    lv_label_set_recolor(feels_label, true);
+    lv_obj_set_grid_cell(feels_label, LV_GRID_ALIGN_END, 1, 2, LV_GRID_ALIGN_CENTER, 2, 1);
+    lv_label_set_text(feels_label, "F: #FF0000 35.3#°C");
+    lv_obj_set_style_text_color(feels_label, lv_color_hex(0xFFFFFF), 0);
+
 }
