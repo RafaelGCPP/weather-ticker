@@ -8,7 +8,7 @@ from PIL import Image
 
 BASE_PATH = "https://github.com/basmilius/weather-icons/blob/dev/production/fill/svg-static/"
 
-WEATHER_ICON_SIZE=40
+WEATHER_ICON_SIZE=60
 
 # Each entry includes a target render size for the final LVGL image.
 FILES = [
@@ -26,8 +26,8 @@ FILES = [
     {"source": "snow.svg", "destination": "weather_13.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
     {"source": "mist.svg", "destination": "weather_50.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
     {"source": "not-available.svg", "destination": "weather_NA.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
-    {"source": "barometer.svg", "destination": "icon_barometer.svg", "width": 14, "height": 14},
-    {"source": "thermometer.svg", "destination": "icon_thermometer.svg", "width": 14, "height": 14},
+    {"source": "barometer.svg", "destination": "icon_barometer.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
+    {"source": "thermometer.svg", "destination": "icon_thermometer.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
 ]
 
 IMAGES_FOLDER = Path("images")

@@ -25,5 +25,7 @@ LV_IMAGE_DECLARE(weather_13);
 LV_IMAGE_DECLARE(weather_50); 
 LV_IMAGE_DECLARE(weather_na);
 
+LV_IMAGE_DECLARE(feels_like_icon);
+
 
 
