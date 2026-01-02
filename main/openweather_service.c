@@ -41,11 +41,18 @@ void openweather_service_task(void *pvParameters)
     }
 
     Coordinates coord = get_coordinates_from_geocode(api_key);
-    if (coord.latitude == 0 && coord.longitude == 0)
+    while (coord.latitude == 0 && coord.longitude == 0)
     {
-        ESP_LOGE(TAG, "Invalid coordinates, stopping weather service task");
-        vTaskDelete(NULL);
-        return;
+        int retries = 5;
+        ESP_LOGW(TAG, "Failed to get coordinates from geocode, retrying in 10 seconds...");
+        vTaskDelay(pdMS_TO_TICKS(10000));
+        coord = get_coordinates_from_geocode(api_key);
+        if (--retries <= 0)
+        {
+            ESP_LOGE(TAG, "Could not get valid coordinates in 5 retries, stopping weather service task");
+            vTaskDelete(NULL);
+            return;
+        }
     }
     ESP_LOGI(TAG, "Coordinates: Lat %.4f, Lon %.4f", coord.latitude, coord.longitude);
 
