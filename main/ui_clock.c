@@ -139,27 +139,6 @@ void tick_clock(void)
                                   timeinfo.tm_year + 1900);
         }
 
-        if (openweather_lock(50))
-        {
-            CurrentWeather *current = openweather_get_current_data();
-            if (current && right_label)
-            {
-                lv_label_set_text_fmt(right_label,
-                                      "Temp: %.1f C\nFeels: %.1f C\nHumidity: %d%%\n%s",
-                                      current->temperature,
-                                      current->feelsLike,
-                                      current->atmospheric.humidity,
-                                      current->weather.main);
-            }
-            if (precipitation_series && precipitation_chart)
-            {
-                int32_t minutely_data[NUM_MINUTELY];
-                openweather_get_scaled_minutely_precipitation_data(minutely_data);
-                lv_chart_set_series_values(precipitation_chart, precipitation_series, minutely_data, NUM_MINUTELY);
-                lv_chart_refresh(precipitation_chart);
-            }
-
-            openweather_unlock();
-        }
+        update_weather_display();
     }
 }

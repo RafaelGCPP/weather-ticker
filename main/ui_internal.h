@@ -13,6 +13,8 @@ void setup_weather_panel(lv_obj_t *parent);
 void setup_precipitation_panel(lv_obj_t *parent);
 
 void tick_clock(void);
+void update_weather_display(void);
+
 
 extern bool s_show_clock_mode;
 extern int s_last_detected_second;
@@ -25,3 +27,7 @@ extern lv_obj_t *precipitation_chart;
 extern lv_chart_series_t *precipitation_series;
 
 extern lv_obj_t *right_label;
+
+extern lv_obj_t *temp_label;
+extern lv_obj_t *feels_label;
+extern lv_obj_t *icon_img;
