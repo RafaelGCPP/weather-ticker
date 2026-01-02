@@ -1,23 +1,27 @@
-#pragma
+#pragma once
 
 #include "esp_lvgl_port.h"
 
-LV_FONT_DECLARE(barlow_condensed_sb42px); // Declare custom font
-LV_FONT_DECLARE(barlow_condensed_sb24px); // Declare custom font
-LV_FONT_DECLARE(montserrat_sb14px);       // Declare custom font
+LV_FONT_DECLARE(barlow_condensed_sb42px);
+LV_FONT_DECLARE(barlow_condensed_sb36px); 
+LV_FONT_DECLARE(barlow_condensed_sb32px);
+LV_FONT_DECLARE(barlow_condensed_sb28px);
+LV_FONT_DECLARE(barlow_condensed_sb24px); 
 
-LV_IMAGE_DECLARE(weather_01d); // Declare weather icon
-LV_IMAGE_DECLARE(weather_01n); // Declare weather icon
-LV_IMAGE_DECLARE(weather_02d); // Declare weather icon
-LV_IMAGE_DECLARE(weather_02n); // Declare weather icon
-LV_IMAGE_DECLARE(weather_03);  // Declare weather icon
-LV_IMAGE_DECLARE(weather_04);  // Declare weather icon
-LV_IMAGE_DECLARE(weather_09);  // Declare weather icon
-LV_IMAGE_DECLARE(weather_10d); // Declare weather icon
-LV_IMAGE_DECLARE(weather_10n); // Declare weather icon
-LV_IMAGE_DECLARE(weather_11d); // Declare weather icon
-LV_IMAGE_DECLARE(weather_11n); // Declare weather icon
-LV_IMAGE_DECLARE(weather_13);  // Declare weather icon
-LV_IMAGE_DECLARE(weather_50);  // Declare weather icon
+LV_FONT_DECLARE(montserrat_sb14px);       
+
+LV_IMAGE_DECLARE(weather_01d);
+LV_IMAGE_DECLARE(weather_01n);
+LV_IMAGE_DECLARE(weather_02d);
+LV_IMAGE_DECLARE(weather_02n);
+LV_IMAGE_DECLARE(weather_03); 
+LV_IMAGE_DECLARE(weather_04); 
+LV_IMAGE_DECLARE(weather_09); 
+LV_IMAGE_DECLARE(weather_10d);
+LV_IMAGE_DECLARE(weather_10n);
+LV_IMAGE_DECLARE(weather_11d);
+LV_IMAGE_DECLARE(weather_11n);
+LV_IMAGE_DECLARE(weather_13); 
+LV_IMAGE_DECLARE(weather_50); 
 
 
