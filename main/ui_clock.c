@@ -3,6 +3,7 @@
 #include <time.h>
 #include "ui_internal.h"
 #include "openweather_service.h"
+#include "declares.h"
 
 bool s_show_clock_mode = false;
 int s_last_detected_second = -1;
@@ -13,9 +14,6 @@ lv_obj_t *label_date = NULL;
 
 static const int32_t col_dsc[] = {150, 170, LV_GRID_TEMPLATE_LAST}; /* 2 columns with 150- and 170-px width */
 static const int32_t row_dsc[] = {120, 50, LV_GRID_TEMPLATE_LAST};  /* 2 rows: 120px + 50px */
-
-LV_FONT_DECLARE(barlow_condensed_sb42px); // Declare custom font
-LV_FONT_DECLARE(montserrat_sb14px);       // Declare custom font
 
 void setup_clock_screen(void)
 {

@@ -4,6 +4,7 @@
 #include "esp_heap_caps.h"
 #include "ui_internal.h"
 #include "openweather_service.h"
+#include "declares.h"
 
 static const char *TAG = "UI_WEATHER";
 
