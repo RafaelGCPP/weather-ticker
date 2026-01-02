@@ -6,12 +6,12 @@
 #include "openweather_service.h"
 #include "declares.h"
 
-static const char *TAG = "UI_WEATHER";
+// static const char *TAG = "UI_WEATHER";
 
 lv_obj_t *right_label = NULL;
 
-static const int32_t col_dsc[] = {60, 30, 40, 40, LV_GRID_TEMPLATE_LAST};
-static const int32_t row_dsc[] = {20, 20, 20, 20, 20, 20, LV_GRID_TEMPLATE_LAST};
+static const int32_t col_dsc[] = {50, 40, 40, 40, LV_GRID_TEMPLATE_LAST};
+static const int32_t row_dsc[] = {10, 20, 20, 20, 20, 20, 10, LV_GRID_TEMPLATE_LAST};
 
 LV_FONT_DECLARE(barlow_condensed_sb42px);
 LV_FONT_DECLARE(barlow_condensed_sb24px);
@@ -31,6 +31,10 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_obj_set_style_grid_row_dsc_array(right_cont, row_dsc, 0);
     lv_obj_set_scrollbar_mode(right_cont, LV_SCROLLBAR_MODE_OFF);
     
+
+    lv_obj_t*  icon_img = lv_img_create(right_cont);
+    lv_obj_set_grid_cell(icon_img, LV_GRID_ALIGN_END, 0, 1, LV_GRID_ALIGN_CENTER, 0, 3);
+    lv_img_set_src(icon_img, &weather_01d);
 
     lv_obj_t *temp_label = lv_label_create(right_cont);
     lv_label_set_recolor(temp_label, true);

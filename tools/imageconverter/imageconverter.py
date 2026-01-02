@@ -3,23 +3,22 @@ import io
 import cairosvg
 from PIL import Image
 
-# --- CONFIGURATION ---
-TARGET_WIDTH = 60   # Desired final width
-TARGET_HEIGHT = 60  # Desired final height
+# --- CONFIGURAÇÕES ---
+TARGET_WIDTH = 40
+TARGET_HEIGHT = 40
 LVGL_VERSION = 9
-OUTPUT_C_FOLDER = "generated_assets"  # Folder for .c files
-OUTPUT_PNG_FOLDER = "debug_pngs"      # Folder to preview the resulting image
+IMAGES_FOLDER = "./images/"
+OUTPUT_C_FOLDER = "generated_assets"
+OUTPUT_PNG_FOLDER = "debug_pngs"
+HEADER_FILENAME = "weather_icons.h"
 
-# Temporary render size (Large to ensure quality when downscaling)
 RENDER_SIZE = 512 
 
 def generate_c_from_svg(filepath, filename):
     try:
-        # 1. Read the SVG file in binary mode (Fix for WSL/Windows)
         with open(filepath, 'rb') as f:
             svg_bytes = f.read()
 
-        # 2. Render LARGE in memory (512x512)
         png_data = cairosvg.svg2png(
             bytestring=svg_bytes, 
             output_width=RENDER_SIZE, 
@@ -29,50 +28,36 @@ def generate_c_from_svg(filepath, filename):
         im = Image.open(io.BytesIO(png_data))
         im = im.convert("RGBA")
         
-        # --- AUTO-CROP MAGIC ---
-        
         bbox = im.getbbox() 
         
         if bbox:
-            # Crop the image to contain ONLY the icon
             im_cropped = im.crop(bbox)
-            
-            # Create a new transparent 60x60 image (TARGET)
             final_im = Image.new("RGBA", (TARGET_WIDTH, TARGET_HEIGHT), (0, 0, 0, 0))
-            
-            # Resize while keeping aspect ratio (LANCZOS = Best quality)
             im_cropped.thumbnail((TARGET_WIDTH, TARGET_HEIGHT), Image.Resampling.LANCZOS)
-            
-            # Center the icon
             x_offset = (TARGET_WIDTH - im_cropped.width) // 2
             y_offset = (TARGET_HEIGHT - im_cropped.height) // 2
-            
             final_im.paste(im_cropped, (x_offset, y_offset))
-            
-            # Replace 'im' with our final version
             im = final_im
         else:
-            print(f"Warning: {filename} appears to be empty/transparent.")
+            print(f"Aviso: {filename} vazio.")
+            return None, None
 
     except Exception as e:
-        print(f"Error processing {filename}: {e}")
-        return
+        print(f"Erro ao processar {filename}: {e}")
+        return None, None
 
-    width, height = im.size # Will be 60x60
+    width, height = im.size
+    stride = width * 4  # <--- CÁLCULO DO STRIDE (ARGB8888 = 4 bytes/pixel)
     
-    # Prepare names
     base_name = os.path.splitext(filename)[0].replace("-", "_").lower()
     var_name = "weather_" + base_name
 
-    # --- NEW: SAVE REFERENCE PNG ---
+    # Salva PNG de Debug
     if not os.path.exists(OUTPUT_PNG_FOLDER):
         os.makedirs(OUTPUT_PNG_FOLDER)
+    im.save(os.path.join(OUTPUT_PNG_FOLDER, f"{base_name}.png"))
     
-    png_path = os.path.join(OUTPUT_PNG_FOLDER, f"{base_name}.png")
-    im.save(png_path)
-    # --------------------------------
-    
-    # C Header
+    # Gera o conteúdo do arquivo .C
     c_content = f"""#include "lvgl.h"
 #include "esp_attr.h"
 
@@ -80,39 +65,28 @@ def generate_c_from_svg(filepath, filename):
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-/*
- * Automatically generated icon (Auto-Cropped)
- * Source: {filename}
- * Final Size: {width}x{height}
- */
-"""
+/* Origem: {filename} | Tamanho: {width}x{height} | Stride: {stride} */
 
-    # --- Pixel Extraction ---
+const uint8_t {var_name}_map[] __attribute__((aligned(4))) = {{\n"""
+
     pixel_data = []
     data = im.getdata()
-    
     for item in data:
         r, g, b, a = item
-        # LVGL Little Endian: B, G, R, A
         pixel_data.append(f"0x{b:02x}, 0x{g:02x}, 0x{r:02x}, 0x{a:02x}")
 
-    # --- Aligned Array ---
-    c_content += f"const uint8_t {var_name}_map[] __attribute__((aligned(4))) = {{\n"
-    
     for i in range(0, len(pixel_data), 4):
         chunk = pixel_data[i:i+4]
         c_content += "    " + ", ".join(chunk) + ",\n"
         
     c_content += "};\n\n"
 
-    # --- Descriptor ---
-    struct_type = "lv_image_dsc_t" if LVGL_VERSION >= 9 else "lv_img_dsc_t"
-    
-    c_content += f"""const {struct_type} {var_name} = {{
+    # --- CORREÇÃO AQUI (LVGL 9 HEADER) ---
+    c_content += f"""const lv_image_dsc_t {var_name} = {{
     .header.w = {width},
     .header.h = {height},
-    .header.always_zero = 0,
     .header.cf = LV_COLOR_FORMAT_ARGB8888,
+    .header.stride = {stride},
     .data_size = {len(pixel_data) * 4},
     .data = {var_name}_map,
 }};
@@ -121,24 +95,49 @@ def generate_c_from_svg(filepath, filename):
     if not os.path.exists(OUTPUT_C_FOLDER):
         os.makedirs(OUTPUT_C_FOLDER)
         
-    out_path = os.path.join(OUTPUT_C_FOLDER, f"{var_name}.c")
-    with open(out_path, "w") as f:
+    with open(os.path.join(OUTPUT_C_FOLDER, f"{var_name}.c"), "w") as f:
         f.write(c_content)
     
-    print(f"[OK] {filename} -> PNG saved in '{OUTPUT_PNG_FOLDER}' -> C generated in '{OUTPUT_C_FOLDER}'")
+    print(f"[OK] {var_name}")
+    return var_name
+
+def generate_header_file(var_list):
+    h_path = os.path.join(OUTPUT_C_FOLDER, HEADER_FILENAME)
+    
+    content = f"""#pragma once
+#include "lvgl.h"
+
+/* Arquivo gerado automaticamente. */
+
+"""
+    for var in var_list:
+        content += f"LV_IMG_DECLARE({var});\n" 
+
+    with open(h_path, "w") as f:
+        f.write(content)
+    
+    print(f"\n[HEADER] Gerado '{h_path}' com {len(var_list)} ícones.")
 
 def main():
-    os.chdir('./images')  # Change to the folder where the downloaded SVGs are
+    os.chdir(IMAGES_FOLDER)  # Muda para a pasta de saída C
     files = [f for f in os.listdir('.') if f.lower().endswith('.svg')]
     if not files:
-        print("No SVGs found.")
+        print("Nenhum SVG encontrado.")
         return
 
-    print(f"Processing {len(files)} icons...")
+    print(f"Processando {len(files)} ícones...")
+    
+    generated_vars = []
+
     for f in files:
-        generate_c_from_svg(f, f)
+        var_name = generate_c_from_svg(f, f)
+        if var_name:
+            generated_vars.append(var_name)
+            
+    if generated_vars:
+        generate_header_file(generated_vars)
         
-    print("\nDone!")
+    print("\nConcluído!")
 
 if __name__ == "__main__":
     main()
