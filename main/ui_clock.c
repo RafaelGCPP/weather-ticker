@@ -13,7 +13,7 @@ lv_obj_t *label_ss = NULL;
 lv_obj_t *label_weekday = NULL;
 lv_obj_t *label_date = NULL;
 
-static const int32_t col_dsc[] = {120, 200, LV_GRID_TEMPLATE_LAST}; /* 2 columns with 150- and 170-px width */
+static const int32_t col_dsc[] = {110, 210, LV_GRID_TEMPLATE_LAST}; /* 2 columns with 150- and 170-px width */
 static const int32_t row_dsc[] = {120, 50, LV_GRID_TEMPLATE_LAST};  /* 2 rows: 120px + 50px */
 
 void setup_clock_screen(void)
