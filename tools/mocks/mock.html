@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 LVGL Dashboard Mock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #101010;
+            --border-color: #404040;
+            --text-orange: #FFA500;
+            --text-white: #FFFFFF;
+            --text-gray: #D3D3D3;
+            --text-yellow: #FFFF00;
+            --text-red: #FF0000;
+            
+            /* Cores do gráfico de precipitação */
+            --rain-light: #00BFFF;
+            --rain-med: #1E90FF;
+            --rain-heavy: #0000FF;
+            --rain-extreme: #FF0000;
+        }
+
+        body {
+            background-color: #333; /* Fundo da página para destacar o display */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        /* Simulação do Display 320x170 */
+        .display-container {
+            width: 320px;
+            height: 170px;
+            background-color: var(--bg-color);
+            display: grid;
+            /* Definição das colunas conforme col_dsc[] = {120, 200} */
+            grid-template-columns: 120px 200px;
+            /* Definição das linhas conforme row_dsc[] = {120, 50} */
+            grid-template-rows: 120px 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- UI CLOCK PANEL (ui_clock.c) --- */
+        .clock-panel {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .weekday {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: var(--text-orange);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .time-container {
+            display: flex;
+            align-items: baseline; /* Alinha HH:MM e SS pela base */
+            justify-content: center;
+        }
+
+        .hhmm {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 32px;
+            color: var(--text-white);
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .ss {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 24px;
+            color: var(--text-white);
+            font-weight: 600;
+            margin-left: 2px;
+        }
+
+        .date {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-top: 5px;
+        }
+
+        /* --- UI WEATHER PANEL (ui_weather.c) --- */
+        .weather-panel {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            display: grid;
+            /* Aproximação do grid complexo interno */
+            grid-template-columns: 60px 1fr; 
+            grid-template-rows: 1fr 1fr;
+            align-items: center;
+            padding-right: 10px;
+        }
+
+        .weather-icon {
+            grid-row: 1 / 3;
+            grid-column: 1 / 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Simulação do ícone SVG de sol */
+        .weather-icon svg {
+            width: 80px;
+            height: 88px;
+            fill: #FFD700;
+        }
+
+        .weather-info {
+            grid-row: 1 / 3;
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align END conforme código */
+            justify-content: center;
+        }
+
+        .temp-line {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 24px;
+            color: var(--text-white);
+        }
+        
+        .temp-val { color: var(--text-yellow); }
+
+        .feels-line {
+            font-family: 'Barlow Condensed', sans-serif; /* Assumindo fonte padrão LVGL, mas ajustando */
+            font-size: 14px; /* Ajuste visual */
+            color: var(--text-white);
+            margin-top: 2px;
+        }
+
+        .feels-val { color: var(--text-red); }
+
+        /* --- UI PRECIPITATION PANEL (ui_precipitation.c) --- */
+        .precipitation-panel {
+            grid-column: 1 / 3; /* Stretch 0 to 2 */
+            grid-row: 2 / 3;
+            border-top: 1px solid var(--border-color);
+            position: relative;
+            padding: 5px 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between; /* Espaçamento entre barras */
+        }
+
+        /* Simulação das linhas de grade do gráfico */
+        .chart-grid-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            border-top: 1px dashed #606060;
+            z-index: 0;
+        }
+
+        .bar {
+            width: 3px; /* Largura fina para caber 60 barras */
+            background-color: var(--rain-light);
+            z-index: 1;
+            border-radius: 1px 1px 0 0;
+            transition: height 0.5s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="display-container">
+        <div class="clock-panel">
+            <div class="weekday" id="weekday">Monday</div>
+            <div class="time-container">
+                <div class="hhmm" id="hhmm">12:00</div>
+                <div class="ss" id="ss">:00</div>
+            </div>
+            <div class="date" id="date">01/01/2026</div>
+        </div>
+
+        <div class="weather-panel">
+            <div class="weather-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512"><defs><linearGradient id="a" x1="150" x2="234" y1="119.2" y2="264.8" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fbbf24"/><stop offset=".5" stop-color="#fbbf24"/><stop offset="1" stop-color="#f59e0b"/></linearGradient><symbol id="b" viewBox="0 0 384 384"><circle cx="192" cy="192" r="84" fill="url(#a)" stroke="#f8af18" stroke-miterlimit="10" stroke-width="6"/><path fill="none" stroke="#fbbf24" stroke-linecap="round" stroke-miterlimit="10" stroke-width="24" d="M192 61.7V12m0 360v-49.7m92.2-222.5 35-35M64.8 319.2l35.1-35.1m0-184.4-35-35m254.5 254.5-35.1-35.1M61.7 192H12m360 0h-49.7"/></symbol></defs><use xlink:href="#b" width="384" height="384" transform="translate(64 64)"/></svg>
+            </div>
+            <div class="weather-info">
+                <div class="temp-line"><span class="temp-val">25.3</span>°C</div>
+                <div class="feels-line">F: <span class="feels-val">35.3</span>°C</div>
+            </div>
+        </div>
+
+        <div class="precipitation-panel" id="precip-chart">
+            <div class="chart-grid-line" style="bottom: 25%"></div>
+            <div class="chart-grid-line" style="bottom: 50%"></div>
+            <div class="chart-grid-line" style="bottom: 75%"></div>
+            </div>
+    </div>
+
+    <script>
+        // --- RELÓGIO LÓGICA ---
+        function updateClock() {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            // Weekday
+            document.getElementById('weekday').textContent = days[now.getDay()];
+
+            // HH:MM
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('hhmm').textContent = `${hh}:${mm}`;
+
+            // SS
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('ss').textContent = `:${ss}`;
+
+            // Date
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mo = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            document.getElementById('date').textContent = `${dd}/${mo}/${yyyy}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- GRÁFICO PRECIPITAÇÃO LÓGICA (ui_precipitation.c) ---
+        // Thresholds definidos no C
+        const LIGHT_RAIN = 10;
+        const MED_RAIN = 30;
+        const HEAVY_RAIN = 60;
+
+        function generateChart() {
+            const chartContainer = document.getElementById('precip-chart');
+            const numBars = 60; // NUM_MINUTELY
+            
+            // Limpa barras antigas (mantendo as linhas de grade)
+            const oldBars = chartContainer.querySelectorAll('.bar');
+            oldBars.forEach(b => b.remove());
+
+            for (let i = 0; i < numBars; i++) {
+                // Gera valor aleatório entre 0 e 80 para simular dados
+                const value = Math.floor(Math.random() * 80); 
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                
+                // Altura proporcional (max 40px altura do chart container no CSS, mas vamos usar %)
+                // O range no C é 0 a 60 (HEAVY_RAIN_THRESHOLD), mas valores podem passar.
+                // Vamos normalizar visualmente: 60 = 100% height
+                let heightPct = (value / 60) * 100;
+                if(heightPct > 100) heightPct = 100;
+                bar.style.height = `${heightPct}%`;
+
+                // Lógica de Cores do chart_draw_event_cb
+                let color = '#00BFFF'; // Light
+                if (value > HEAVY_RAIN) color = '#FF0000';
+                else if (value > MED_RAIN) color = '#0000FF';
+                else if (value > LIGHT_RAIN) color = '#1E90FF';
+                
+                bar.style.backgroundColor = color;
+                
+                chartContainer.appendChild(bar);
+            }
+        }
+
+        generateChart();
+        // Atualiza gráfico aleatoriamente a cada 5s para parecer vivo
+        setInterval(generateChart, 5000);
+
+    </script>
+</body>
+</html>
