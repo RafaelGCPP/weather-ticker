@@ -23,5 +23,7 @@ LV_IMAGE_DECLARE(weather_11d);
 LV_IMAGE_DECLARE(weather_11n);
 LV_IMAGE_DECLARE(weather_13); 
 LV_IMAGE_DECLARE(weather_50); 
+LV_IMAGE_DECLARE(weather_na);
+
 
 

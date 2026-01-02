@@ -5,6 +5,7 @@
 #include "ui_internal.h"
 #include "openweather_service.h"
 #include "declares.h"
+#include "weather_utils.h"
 
 // static const char *TAG = "UI_WEATHER";
 
@@ -19,20 +20,7 @@ static const int32_t row_dsc[] = {10, 20, 20, 20, 20, 20, 10, LV_GRID_TEMPLATE_L
 LV_FONT_DECLARE(barlow_condensed_sb42px);
 LV_FONT_DECLARE(barlow_condensed_sb24px);
 
-static int get_temperature_color(float temperature)
-{
-    if (temperature <= 0.0f) {
-        return 0x00BFFF; // Blue
-    } else if (temperature <= 15.0f) {
-        return 0x7FFFD4; // Aquamarine
-    } else if (temperature <= 25.0f) {
-        return 0xFFFF00; // Yellow
-    } else if (temperature <= 35.0f) {
-        return 0xFFA500; // Orange
-    } else {
-        return 0xFF0000; // Red
-    }
-}
+
 
 void setup_weather_panel(lv_obj_t *parent)
 {
@@ -87,6 +75,10 @@ void update_weather_display() //called from ui_clock.c tick_clock() every second
             lv_chart_set_series_values(precipitation_chart, precipitation_series, minutely_data, NUM_MINUTELY);
             lv_chart_refresh(precipitation_chart);
         }        
+        if (icon_img && current) {
+            const lv_image_dsc_t* icon = get_weather_icon(current->weather.icon);
+            lv_img_set_src(icon_img, icon);
+        }
         openweather_unlock();
     }
 }

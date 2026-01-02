@@ -3,3 +3,5 @@ venv/
 *.pyc
 __pycache__/
 images/
+debug_pngs/
+generated_assets/
