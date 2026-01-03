@@ -28,6 +28,12 @@ FILES = [
     {"source": "not-available.svg", "destination": "weather_NA.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
     {"source": "barometer.svg", "destination": "icon_barometer.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
     {"source": "thermometer.svg", "destination": "icon_thermometer.svg", "width": WEATHER_ICON_SIZE, "height": WEATHER_ICON_SIZE},
+    {"source": "clear-day.svg", "destination": "uvi_icon.svg", "width": 16, "height": 16},
+    {"source": "wind.svg", "destination": "wind_speed_icon.svg", "width": 16, "height": 16},
+    {"source": "windsock.svg", "destination": "wind_direction_icon.svg", "width": 16, "height": 16},
+    {"source": "barometer.svg", "destination": "pressure_icon.svg", "width": 16, "height": 16},
+    {"source": "thermometer-sun.svg", "destination": "feels_like_icon.svg", "width": 16, "height": 16},
+
 ]
 
 IMAGES_FOLDER = Path("images")

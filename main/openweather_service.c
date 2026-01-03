@@ -6,7 +6,7 @@
 #include "esp_log.h"
 
 static const char *TAG = "OPENWEATHER_SERVICE";
-static const int OPENWEATHER_UPDATE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+static const int OPENWEATHER_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
 OpenWeatherData *s_weather_data = NULL;
 SemaphoreHandle_t s_weather_mutex = NULL;
@@ -89,6 +89,6 @@ void openweather_get_scaled_minutely_precipitation_data(int32_t *data_out)
 {
     for (int i = 0; i < NUM_MINUTELY; i++)
     {
-        data_out[i] = (int32_t)(s_weather_data->minutely[i].precipitation * 60); // Scale to mm/h
+        data_out[i] = (int32_t)(s_weather_data->minutely[i].precipitation);
     }
 }

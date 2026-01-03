@@ -39,5 +39,8 @@ idf_component_register(SRCS "ui_weather.c"
                             "images/weather_50.c"
                             "images/weather_na.c" 
                             "images/feels_like_icon.c"
+                            "images/humidity_icon.c"
+                            "images/pressure_icon.c"
+                            "images/uvi_icon.c"
                             "weather_utils.c" 
                     INCLUDE_DIRS ".")
