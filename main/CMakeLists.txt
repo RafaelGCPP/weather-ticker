@@ -59,7 +59,5 @@ idf_component_register(SRCS
                             "images/uvi_icon.c"
                             "images/wind_speed_icon.c"
                             "images/wind_direction_icon.c"
-                            "weather_utils.c" 
-                    INCLUDE_DIRS ".")
                             
                     INCLUDE_DIRS "." "include" "ui" "openweather" "network" "core")

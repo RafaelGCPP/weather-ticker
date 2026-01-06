@@ -5,15 +5,16 @@ cmake_minimum_required(VERSION 3.16)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(weather-ticker)
 
-# Build front-end using npm before creating LittleFS image
-add_custom_target(build_frontend
-    COMMAND ${CMAKE_SOURCE_DIR}/build-frontend.sh 
-            ${CMAKE_SOURCE_DIR}/front-src/config 
-            ${CMAKE_SOURCE_DIR}/front/config
+# Build front-end using npm
+add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/front/config/index.html
+    COMMAND npm install
+    COMMAND npm run deploy
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/front-src/config
     COMMENT "Building front-end with npm..."
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     VERBATIM
 )
+
+add_custom_target(build_frontend DEPENDS ${CMAKE_SOURCE_DIR}/front/config/index.html)
 
 # Create LittleFS partition image with the built front-end
 littlefs_create_partition_image(littlefs "front" FLASH_IN_PROJECT)
