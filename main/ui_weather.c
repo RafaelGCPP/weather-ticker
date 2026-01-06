@@ -16,11 +16,13 @@ lv_obj_t *pressure_label = NULL;
 lv_obj_t *humidity_label = NULL;
 lv_obj_t *dew_label = NULL;
 lv_obj_t *uvi_label = NULL;
+lv_obj_t *ws_label = NULL;
+lv_obj_t *wd_label = NULL;
 
 lv_obj_t *icon_img = NULL;
 
 // CORREÇÃO: 90px + 60px + 60px = 210px (Preenche exatamente o container)
-static const int32_t col_dsc[] = {90, 120, LV_GRID_TEMPLATE_LAST};
+static const int32_t col_dsc[] = {10, 90, 110, LV_GRID_TEMPLATE_LAST};
 static const int32_t row_dsc[] = {120, LV_GRID_TEMPLATE_LAST}; // 1 rows: 120px
 
 LV_FONT_DECLARE(barlow_condensed_sb42px);
@@ -58,7 +60,7 @@ void setup_weather_panel(lv_obj_t *parent)
 
     // Tamanho exato da coluna (90px)
     lv_obj_set_size(weather_cont, 90, 120);
-    lv_obj_set_grid_cell(weather_cont, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_START, 0, 1);
+    lv_obj_set_grid_cell(weather_cont, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_START, 0, 1);
 
     // Weather Icon background
     lv_obj_t *icon_bg = lv_obj_create(weather_cont);
@@ -93,7 +95,7 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_obj_set_style_text_color(feels_label, lv_color_hex(0xFFFFFF), 0);
 
     // Second column: atmospheric data (Pressure, Humidity, etc.)
-    static int32_t atm_col_dsc[] = {20, 16, 64, 20, LV_GRID_TEMPLATE_LAST};
+    static int32_t atm_col_dsc[] = {20, 16, 64, 10, LV_GRID_TEMPLATE_LAST};
     static int32_t atm_row_dsc[] = {20, 20, 20, 20, 20, 20, LV_GRID_TEMPLATE_LAST};
 
     lv_obj_t *atm_cont = lv_obj_create(right_cont);
@@ -105,9 +107,8 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_obj_set_style_pad_all(atm_cont, 0, 0);
     lv_obj_set_style_pad_gap(atm_cont, 0, 0);
     // Tamanho exato da coluna (60px)
-    lv_obj_set_size(atm_cont, 120, 120);
-    lv_obj_set_grid_cell(atm_cont, LV_GRID_ALIGN_START, 1, 1, LV_GRID_ALIGN_START, 0, 1);
-
+    lv_obj_set_size(atm_cont, 110, 120);
+    lv_obj_set_grid_cell(atm_cont, LV_GRID_ALIGN_START, 2, 1, LV_GRID_ALIGN_START, 0, 1);
 
     lv_obj_t *pr_icon = lv_img_create(atm_cont);
     lv_img_set_src(pr_icon, &pressure_icon); // change to pressure icon
@@ -129,7 +130,6 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_obj_set_grid_cell(humidity_label, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 1, 1);
     lv_obj_set_style_text_color(humidity_label, lv_color_white(), 0);
 
-    
     lv_obj_t *dw_icon = lv_img_create(atm_cont);
     lv_img_set_src(dw_icon, &humidity_icon); // change to humidity icon
     // Coluna 0 (20px), alinhado à direita
@@ -149,6 +149,27 @@ void setup_weather_panel(lv_obj_t *parent)
     lv_label_set_text_fmt(uvi_label, "%.1f°C", 0.0);
     lv_obj_set_grid_cell(uvi_label, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 3, 1);
     lv_obj_set_style_text_color(uvi_label, lv_color_white(), 0);
+
+    lv_obj_t *ws_icon = lv_img_create(atm_cont);
+    lv_img_set_src(ws_icon, &wind_speed_icon); // change to wind speed icon
+    // Coluna 0 (20px), alinhado à direita
+    lv_obj_set_grid_cell(ws_icon, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 4, 1);
+
+    ws_label = lv_label_create(atm_cont);
+    lv_label_set_text_fmt(ws_label, "%.1fm/s", 0.0);
+    lv_obj_set_grid_cell(ws_label, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 4, 1);
+    lv_obj_set_style_text_color(ws_label, lv_color_white(), 0);
+
+
+    lv_obj_t *wd_icon = lv_img_create(atm_cont);
+    lv_img_set_src(wd_icon, &wind_direction_icon); // change to wind direction icon
+    // Coluna 0 (20px), alinhado à direita
+    lv_obj_set_grid_cell(wd_icon, LV_GRID_ALIGN_CENTER, 1, 1, LV_GRID_ALIGN_CENTER, 5, 1);
+
+    wd_label = lv_label_create(atm_cont);
+    lv_label_set_text_fmt(wd_label, "%d°", 0);
+    lv_obj_set_grid_cell(wd_label, LV_GRID_ALIGN_END, 2, 1, LV_GRID_ALIGN_CENTER, 5, 1);
+    lv_obj_set_style_text_color(wd_label, lv_color_white(), 0);
 }
 
 void update_weather_display() // called from ui_clock.c tick_clock() every second.
@@ -181,6 +202,14 @@ void update_weather_display() // called from ui_clock.c tick_clock() every secon
             if (uvi_label)
             {
                 lv_label_set_text_fmt(uvi_label, "%.1f", current->atmospheric.uvi);
+            }
+            if (ws_label)
+            {
+                lv_label_set_text_fmt(ws_label, "%.1fm/s", current->wind.speed);
+            }
+            if (wd_label)
+            {
+                lv_label_set_text_fmt(wd_label, "%d°", current->wind.degree);
             }
         }
         if (precipitation_series && precipitation_chart)
