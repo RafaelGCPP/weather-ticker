@@ -1,30 +1,48 @@
 # weather-ticker
-An ESP32 S3 weather ticker
+An ESP32-S3 weather ticker with a local config portal and LVGL display.
 
 ## Overview
 
-This project implements a weather ticker for ESP32-S3 with Wi-Fi configuration and SoftAP fallback support.
+This project runs a SoftAP fallback, serves a Svelte config UI from LittleFS, syncs time via NTP, and fetches OpenWeather data for an on-device UI.
 
 ## Features
 
-- **Wi-Fi Configuration**: Automatic connection to saved Wi-Fi networks
-- **SoftAP Fallback**: Automatically starts a SoftAP (Access Point) if no saved credentials are found or connection fails
-- **NVS Storage**: Persistent storage of Wi-Fi credentials and SoftAP settings
-- **Random Password Generation**: Base32-encoded random passwords for SoftAP mode
-- **Serial Console Output**: SoftAP credentials are printed to the serial console for easy access
+- **Wi-Fi Manager**: STA connect with retries plus SoftAP fallback
+- **SoftAP QR Codes**: Credentials and config URL are shown on the display
+- **NVS Storage**: Persistent storage for Wi-Fi and app settings
+- **Random Password Generation**: 12-character alphanumeric PSK generated on first boot
+- **Web Config Portal**: Svelte app served from LittleFS at `/c`
+- **REST API**: `/api/scan`, `/api/config`, `/api/save`
+- **Time Sync**: NTP with configurable timezone and server
+- **Weather Data**: OpenWeather One Call v3 fetch with LVGL display
 
-## Wi-Fi Behavior
+## Wi-Fi and Config Flow
 
-1. On first boot, the device will start in SoftAP mode with:
+1. On first boot (or if no saved credentials), the device starts SoftAP:
    - SSID: `Weather` (default, stored in NVS)
-   - Password: Random 12-character base32 string (e.g., `A7B2C9D4E5F6`)
-   - The credentials are printed to the serial console
+   - PSK: Random 12-character alphanumeric string
+   - Credentials are printed to the serial console and shown as a QR code
 
-2. Once Wi-Fi credentials are configured (future feature via web interface), they are saved to NVS
+2. When a client connects to the SoftAP, the device shows a QR code for:
+   - `http://192.168.4.1/c`
 
-3. On subsequent boots, the device will:
-   - Try to connect to the saved Wi-Fi network
-   - Fall back to SoftAP mode if connection fails
+3. On subsequent boots, the device:
+   - Tries to connect to the saved Wi-Fi network
+   - Falls back to SoftAP if connection fails
+   - Starts NTP after acquiring an IP
+
+## Web UI and API
+
+- Config UI: `http://<device-ip>/c`
+- Weather web assets: `http://<device-ip>/` (served from LittleFS)
+
+API endpoints:
+- `GET /api/scan` -> list SSIDs with RSSI/auth
+- `GET /api/config` -> current config JSON
+- `POST /api/save` -> save config JSON to NVS
+
+Config JSON keys:
+`wifiSsid`, `wifiPassword`, `apSsid`, `apPassword`, `weatherCity`, `timeZone`, `ntpServer`, `weatherApiKey`
 
 ## Building
 
@@ -38,7 +56,7 @@ This project requires ESP-IDF v5.0 or later.
    . $HOME/esp/esp-idf/export.sh
    ```
 
-### Build Steps
+### Firmware Build
 
 ```bash
 # Configure the project (only needed once)
@@ -54,37 +72,49 @@ idf.py -p /dev/ttyUSB0 flash
 idf.py -p /dev/ttyUSB0 monitor
 ```
 
+### Config Page (Svelte)
+
+See `front-src/config/README.md` for full steps. Quick path:
+
+```bash
+cd front-src/config
+npm install
+npm run deploy
+```
+
+This builds to `front/config`, which is packed into the `littlefs` partition during the firmware build.
+
 ## Project Structure
 
 ```
 weather-ticker/
-├── main/
-│   ├── main.c              # Main application entry point
-│   ├── wifi_manager.c/h    # Wi-Fi management with SoftAP fallback
-│   ├── nvs_storage.c/h     # NVS storage utilities
-│   ├── base32.c/h          # Base32 password generator
-│   └── CMakeLists.txt      # Component build configuration
-├── partitions.csv          # Partition table (includes littlefs)
-├── sdkconfig.defaults      # Default ESP-IDF configuration
-└── CMakeLists.txt          # Project build configuration
+|-- main/                 # Firmware sources (Wi-Fi, web server, UI, OpenWeather)
+|-- front/                # LittleFS web assets (config + weather)
+|-- front-src/config/     # Svelte config UI source
+|-- partitions.csv        # Partition table (includes littlefs)
+|-- sdkconfig.defaults    # Default ESP-IDF configuration
+`-- CMakeLists.txt        # Project build configuration
 ```
 
 ## NVS Storage Keys
 
 The following keys are used in NVS (namespace: `wifi_config`):
 
-- `softap_ssid`: SoftAP SSID (default: "Weather")
-- `softap_psk`: SoftAP password (randomly generated)
+- `softap_ssid`: SoftAP SSID
+- `softap_psk`: SoftAP password
 - `wifi_ssid`: Station mode Wi-Fi SSID
 - `wifi_psk`: Station mode Wi-Fi password
+- `weather_city`: OpenWeather city name
+- `time_zone`: TZ string (e.g., `BRT3`)
+- `ntp_server`: Custom NTP server hostname
+- `ow_api_key`: OpenWeather API key
 
-## Future Features
+## Future Work
 
-- Web interface for Wi-Fi configuration (using littlefs for HTML storage)
-- Weather data display
-- Configuration portal accessible via SoftAP mode
+- Improve config portal UX and validation
+- Add more on-device weather views
+- OTA updates
 
 ## License
 
 See LICENSE file for details.
-

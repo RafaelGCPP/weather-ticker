@@ -6,11 +6,10 @@
 #include "esp_log.h"
 
 static const char *TAG = "OPENWEATHER_SERVICE";
-static const int OPENWEATHER_UPDATE_INTERVAL_MS = 1 * 60 * 1000; // 60 minutes
+static const int OPENWEATHER_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 
 OpenWeatherData *s_weather_data = NULL;
 SemaphoreHandle_t s_weather_mutex = NULL;
-
 
 void openweather_service_init()
 {
@@ -19,8 +18,8 @@ void openweather_service_init()
     {
         ESP_LOGE(TAG, "Failed to create weather mutex");
         return;
-    }   
-    s_weather_data=malloc(sizeof(OpenWeatherData));
+    }
+    s_weather_data = malloc(sizeof(OpenWeatherData));
     if (s_weather_data == NULL)
     {
         ESP_LOGE(TAG, "Failed to allocate memory for weather data");
@@ -42,18 +41,25 @@ void openweather_service_task(void *pvParameters)
     }
 
     Coordinates coord = get_coordinates_from_geocode(api_key);
-    if (coord.latitude == 0 && coord.longitude == 0)
+    while (coord.latitude == 0 && coord.longitude == 0)
     {
-        ESP_LOGE(TAG, "Invalid coordinates, stopping weather service task");
-        vTaskDelete(NULL);
-        return;
+        int retries = 5;
+        ESP_LOGW(TAG, "Failed to get coordinates from geocode, retrying in 10 seconds...");
+        vTaskDelay(pdMS_TO_TICKS(10000));
+        coord = get_coordinates_from_geocode(api_key);
+        if (--retries <= 0)
+        {
+            ESP_LOGE(TAG, "Could not get valid coordinates in 5 retries, stopping weather service task");
+            vTaskDelete(NULL);
+            return;
+        }
     }
     ESP_LOGI(TAG, "Coordinates: Lat %.4f, Lon %.4f", coord.latitude, coord.longitude);
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(OPENWEATHER_UPDATE_INTERVAL_MS)); // 60 minutes
         fetch_and_process_weather_data(coord, api_key);
+        vTaskDelay(pdMS_TO_TICKS(OPENWEATHER_UPDATE_INTERVAL_MS)); // 60 minutes
     }
 }
 
@@ -74,7 +80,15 @@ void openweather_unlock()
     }
 }
 
-OpenWeatherData* openweather_get_data()
+CurrentWeather *openweather_get_current_data()
 {
-    return s_weather_data;
+    return &(s_weather_data->current);
+}
+
+void openweather_get_scaled_minutely_precipitation_data(int32_t *data_out)
+{
+    for (int i = 0; i < NUM_MINUTELY; i++)
+    {
+        data_out[i] = (int32_t)(s_weather_data->minutely[i].precipitation);
+    }
 }

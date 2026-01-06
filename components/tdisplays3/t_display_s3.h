@@ -62,7 +62,7 @@ extern "C" {
 
 // PCLK frequency can't go too high as the limitation of PSRAM bandwidth
 // try 2-17
-#define LCD_PIXEL_CLOCK_HZ     (17 * 1000 * 1000)
+#define LCD_PIXEL_CLOCK_HZ     (15 * 1000 * 1000)
 
 #define LCD_I80_TRANS_QUEUE_SIZE 20
 #define LCD_I80_DC_CMD_LEVEL     0
@@ -82,7 +82,7 @@ extern "C" {
 // LVGL Timer options
 #define LVGL_TICK_PERIOD_MS    5
 #define LVGL_MAX_SLEEP_MS      (LVGL_TICK_PERIOD_MS * 2) // this affects how fast the screen is refreshed
-#define LVGL_TASK_STACK_SIZE   (8 * 1024)
+#define LVGL_TASK_STACK_SIZE   (12 * 1024)
 #define LVGL_TASK_PRIORITY     2
 
 
