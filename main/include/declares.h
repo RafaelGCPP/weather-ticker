@@ -29,3 +29,5 @@ LV_IMAGE_DECLARE(feels_like_icon);
 LV_IMAGE_DECLARE(humidity_icon);
 LV_IMAGE_DECLARE(pressure_icon);
 LV_IMAGE_DECLARE(uvi_icon);
+LV_IMAGE_DECLARE(wind_speed_icon);
+LV_IMAGE_DECLARE(wind_direction_icon);
