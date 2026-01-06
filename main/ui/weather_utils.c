@@ -1,6 +1,6 @@
 #include "weather_utils.h"
 #include <string.h>
-#include "declares.h" // O arquivo gerado pelo Python
+#include "declares.h"
 
 
 int get_temperature_color(float temperature)

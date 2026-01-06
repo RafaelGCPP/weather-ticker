@@ -1,6 +1,6 @@
 #include "esp_log.h"
 #include "nvs_storage.h"
-#include "url_encode.h"
+#include "utils/url_encode.h"
 #include "openweather_service.h"
 #include "openweather_internal.h"
 #include "http_buffer_download.h"

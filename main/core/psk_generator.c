@@ -1,4 +1,4 @@
-#include "psk_generator.h"
+#include "utils/psk_generator.h"
 #include "esp_random.h"
 #include <string.h>
 

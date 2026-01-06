@@ -1,29 +1,44 @@
-idf_component_register(SRCS "ui_weather.c" 
-                            "ui_precipitation.c" 
-                            "http_buffer_download.c" 
-                            "openweather_service.c" 
-                            "openweather_parser.c" 
-                            "url_encode.c" 
-                            "openweather_client.c" 
+idf_component_register(SRCS 
+                            # Main entry point
+                            "main.c"
+                            
+                            # UI module
+                            "ui/ui.c"
+                            "ui/ui_events.c"
+                            "ui/ui_weather.c" 
+                            "ui/ui_precipitation.c" 
+                            "ui/ui_clock.c" 
+                            "ui/ui_qrcode.c" 
+                            "ui/display.c"
+                            "ui/weather_utils.c" 
+                            
+                            # OpenWeather module
+                            "openweather/openweather_service.c" 
+                            "openweather/openweather_parser.c" 
+                            "openweather/openweather_client.c" 
+                            
+                            # Network module
+                            "network/wifi_manager.c"
+                            "network/wifi_scan.c" 
+                            "network/web_server.c" 
+                            "network/web_api.c" 
+                            "network/http_buffer_download.c" 
+                            
+                            # Core utilities
+                            "core/nvs_storage.c"
+                            "core/ntp_manager.c"
+                            "core/psk_generator.c"
+                            "core/url_encode.c" 
+                            
+                            # Fonts
                             "fonts/montserrat_sb14px.c" 
                             "fonts/barlow_condensed_sb42px.c" 
                             "fonts/barlow_condensed_sb36px.c" 
                             "fonts/barlow_condensed_sb32px.c" 
                             "fonts/barlow_condensed_sb28px.c" 
                             "fonts/barlow_condensed_sb24px.c" 
-                            "ui_clock.c" 
-                            "ui_qrcode.c" 
-                            "wifi_scan.c" 
-                            "web_api.c" 
-                            "web_server.c" 
-                            "main.c"
-                            "wifi_manager.c"
-                            "nvs_storage.c"
-                            "psk_generator.c"
-                            "display.c"
-                            "ui.c"
-                            "ui_events.c"
-                            "ntp_manager.c"
+                            
+                            # Images
                             "images/weather_01d.c"
                             "images/weather_01n.c"
                             "images/weather_02d.c"
@@ -42,5 +57,5 @@ idf_component_register(SRCS "ui_weather.c"
                             "images/humidity_icon.c"
                             "images/pressure_icon.c"
                             "images/uvi_icon.c"
-                            "weather_utils.c" 
-                    INCLUDE_DIRS ".")
+                            
+                    INCLUDE_DIRS "." "include" "ui" "openweather" "network" "core")

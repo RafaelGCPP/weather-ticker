@@ -2,7 +2,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_log.h"
-#include "psk_generator.h"
+#include "utils/psk_generator.h"
 #include <string.h>
 
 static const char *TAG = "nvs_storage";
