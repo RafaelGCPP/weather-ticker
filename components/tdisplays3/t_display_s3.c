@@ -8,6 +8,7 @@
 #include <soc/adc_channel.h>
 #include <esp_lcd_panel_st7789.h>
 #include <driver/ledc.h>
+#include <driver/gpio.h>
 #include "math.h"
 #include "aw9364.h"
 //
