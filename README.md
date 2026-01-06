@@ -46,7 +46,7 @@ Config JSON keys:
 
 ## Building
 
-This project requires ESP-IDF v5.0 or later.
+This project requires ESP-IDF v5.0 or later and Node.js 20+ (for front-end build).
 
 ### Prerequisites
 
@@ -55,14 +55,19 @@ This project requires ESP-IDF v5.0 or later.
    ```bash
    . $HOME/esp/esp-idf/export.sh
    ```
+3. Node.js 20+ is required for building the front-end
+   - If using the devcontainer, Node.js is pre-installed
+   - Otherwise, install from [nodejs.org](https://nodejs.org/)
 
-### Firmware Build
+### Complete Build (Firmware + Front-end)
+
+The build process now automatically builds the front-end:
 
 ```bash
 # Configure the project (only needed once)
 idf.py set-target esp32s3
 
-# Build the project
+# Build everything (firmware + front-end)
 idf.py build
 
 # Flash to device
@@ -72,29 +77,51 @@ idf.py -p /dev/ttyUSB0 flash
 idf.py -p /dev/ttyUSB0 monitor
 ```
 
-### Config Page (Svelte)
+**What happens during build:**
+1. CMake triggers the front-end build target
+2. `npm install` runs (if needed) in `front-src/config/`
+3. `npm run deploy` builds the Svelte app and copies to `front/config/`
+4. LittleFS partition image is created with the front-end files
+5. ESP32 firmware is compiled and linked
 
-See `front-src/config/README.md` for full steps. Quick path:
+See [FRONTEND_BUILD.md](FRONTEND_BUILD.md) for detailed front-end build documentation.
+
+### Manual Front-end Development
+
+For front-end development without rebuilding the firmware:
+
+### Manual Front-end Development
+
+For front-end development without rebuilding the firmware:
 
 ```bash
 cd front-src/config
 npm install
-npm run deploy
+npm run dev         # Development server with hot reload
+npm run deploy      # Build and deploy to front/config/
 ```
-
-This builds to `front/config`, which is packed into the `littlefs` partition during the firmware build.
 
 ## Project Structure
 
 ```
 weather-ticker/
-|-- main/                 # Firmware sources (Wi-Fi, web server, UI, OpenWeather)
-|-- front/                # LittleFS web assets (config + weather)
-|-- front-src/config/     # Svelte config UI source
-|-- partitions.csv        # Partition table (includes littlefs)
-|-- sdkconfig.defaults    # Default ESP-IDF configuration
-`-- CMakeLists.txt        # Project build configuration
+├── main/                    # Firmware sources (reorganized into modules)
+│   ├── include/            # Public headers (typedefs, APIs)
+│   ├── ui/                 # Display and UI module
+│   ├── openweather/        # OpenWeather API client
+│   ├── network/            # Wi-Fi, web server, HTTP
+│   ├── core/               # NVS, NTP, utilities
+│   ├── fonts/              # LVGL fonts
+│   └── images/             # LVGL images
+├── front/                   # LittleFS web assets (auto-generated)
+├── front-src/config/        # Svelte config UI source
+├── build-frontend.sh        # Front-end build script
+├── partitions.csv           # Partition table (includes littlefs)
+├── sdkconfig.defaults       # Default ESP-IDF configuration
+└── CMakeLists.txt          # Project build configuration
 ```
+
+See [CONFIGURATION.md](CONFIGURATION.md) for code organization details.
 
 ## NVS Storage Keys
 
