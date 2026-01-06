@@ -5,7 +5,7 @@
   import { INPUT_CLASS } from '$lib/styles';
   
   // Import the new Sub-Components
-  import WifiSection from '$lib/sections/WifiSection.svelte';
+  import WifiSection from '$lib/sections/WiFiSection.svelte';
   import TimeSection from '$lib/sections/TimeSection.svelte';
 
   // State

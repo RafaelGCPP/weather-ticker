@@ -1,0 +1,85 @@
+name: Release Firmware
+
+on:
+  push:
+    tags: [ "v*.*.*" ]
+
+env:
+  IDF_TARGET: esp32s3
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'front-src/config/package-lock.json'
+
+      - name: Build front-end assets
+        working-directory: front-src/config
+        run: |
+          npm ci || npm install
+          npm run deploy
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-${{ runner.os }}-${{ env.IDF_TARGET }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig.defaults') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ env.IDF_TARGET }}-
+
+      - name: Build with ESP-IDF
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: latest
+          target: ${{ env.IDF_TARGET }}
+          path: .
+          extra_docker_args: >-
+            -v ./.ccache:/root/.ccache
+            -e CCACHE_DIR=/root/.ccache
+            -e CCACHE_COMPRESS=1
+            -e CCACHE_MAXSIZE=1G
+            -e CMAKE_C_COMPILER_LAUNCHER=ccache
+            -e CMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Package firmware
+        run: |
+          set -e
+          mkdir -p dist
+          cp -v build/*.bin dist/ || true
+          cp -v build/flasher_args.json dist/ || true
+          cp -v build/flash_args dist/ || true
+          cp -v build/flash_app_args dist/ || true
+          cp -v build/bootloader-flash_args dist/ || true
+          cp -v build/partition-table-flash_args dist/ || true
+          echo "Firmware built for ${IDF_TARGET}" > dist/README.txt
+          echo "Use flasher_args.json with esptool.py or idf.py to flash." >> dist/README.txt
+          zip -jr dist/weather-ticker-${IDF_TARGET}-${{ github.ref_name }}.zip dist
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ env.IDF_TARGET }}-${{ github.ref_name }}
+          path: |
+            dist/weather-ticker-${{ env.IDF_TARGET }}-${{ github.ref_name }}.zip
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/weather-ticker-${{ env.IDF_TARGET }}-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
