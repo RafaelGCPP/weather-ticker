@@ -7,13 +7,14 @@
   ],
   "idf.portWin": "COM5",
   "idf.flashType": "UART",
-  "idf.espIdfPathWin": "d:\\esp\\v5.5.1\\esp-idf",
+  "idf.espIdfPathWin": "D:\\esp\\v6.1-dev\\esp-idf",
   "idf.toolsPathWin": "D:\\esp\\esp-tools",
-  "idf.pythonInstallPath": "d:\\esp\\esp-tools\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.pythonInstallPath": "D:\\esp\\esp-tools\\tools\\idf-python\\3.11.2\\python.exe",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32s3"
-  }
+  },
+  "idf.currentSetup": "C:\\Users\\rafae\\esp\\v6.0\\esp-idf"
 }

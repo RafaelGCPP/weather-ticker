@@ -8,10 +8,9 @@
 #include <soc/adc_channel.h>
 #include <esp_lcd_panel_st7789.h>
 #include <driver/ledc.h>
+#include <driver/gpio.h>
 #include "math.h"
 #include "aw9364.h"
-//
-
 
 static const char *TAG = "esp_idf_t_display_s3";
 
@@ -43,8 +42,7 @@ static void init_lcd_i80_bus(esp_lcd_panel_io_handle_t *io_handle) {
             .bus_width = LCD_I80_BUS_WIDTH,
             // transfer 100 lines of pixels (assume pixel is RGB565) at most in one transaction
             .max_transfer_bytes = LCD_H_RES * 100 * sizeof(uint16_t),
-            .psram_trans_align = LCD_PSRAM_TRANS_ALIGN,
-            .sram_trans_align = LCD_SRAM_TRANS_ALIGN,
+            .dma_burst_size = LCD_PSRAM_TRANS_ALIGN,
     };
     ESP_ERROR_CHECK(esp_lcd_new_i80_bus(&bus_config, &i80_bus));
 
