@@ -5,7 +5,7 @@ void show_connecting_message(const char *ssid);
 
 void show_AP_qrcode(const char *ssid, const char *password);
 void show_config_qrcode(const char *url);
-void show_qrcode();
+void show_qrcode(lv_obj_t **qr_code_obj_ptr, lv_obj_t **label_status_ptr);
 
 void setup_clock_screen(void);
 void setup_clock_panel(lv_obj_t *parent);
