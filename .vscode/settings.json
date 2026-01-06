@@ -9,7 +9,7 @@
   "idf.flashType": "UART",
   "idf.espIdfPathWin": "d:\\esp\\v5.5.1\\esp-idf",
   "idf.toolsPathWin": "D:\\esp\\esp-tools",
-  "idf.pythonInstallPath": "D:\\esp\\esp-tools\\tools\\idf-python\\3.11.2\\python.exe",
+  "idf.pythonInstallPath": "/opt/esp/python_env/idf5.5_py3.12_env/bin/python",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],

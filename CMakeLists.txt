@@ -7,7 +7,7 @@ project(weather-ticker)
 
 # Build front-end using npm
 add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/front/config/index.html
-    COMMAND npm ci
+    COMMAND npm install
     COMMAND npm run deploy
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/front-src/config
     COMMENT "Building front-end with npm..."
