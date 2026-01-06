@@ -61,13 +61,19 @@ This project requires ESP-IDF v5.0 or later and Node.js 20+ (for front-end build
 
 ### Complete Build (Firmware + Front-end)
 
-The build process now automatically builds the front-end:
+Locally, build the front-end first, then compile firmware:
 
 ```bash
 # Configure the project (only needed once)
 idf.py set-target esp32s3
 
-# Build everything (firmware + front-end)
+# Build front-end assets
+cd front-src/config
+npm install
+npm run deploy        # outputs to ../front/config
+cd -
+
+# Build firmware (uses assets in front/config)
 idf.py build
 
 # Flash to device
@@ -77,18 +83,12 @@ idf.py -p /dev/ttyUSB0 flash
 idf.py -p /dev/ttyUSB0 monitor
 ```
 
-**What happens during build:**
-1. CMake triggers the front-end build target
-2. `npm install` runs (if needed) in `front-src/config/`
-3. `npm run deploy` builds the Svelte app and copies to `front/config/`
-4. LittleFS partition image is created with the front-end files
-5. ESP32 firmware is compiled and linked
+**Build notes:**
+1. Front-end assets must exist in `front/config` before `idf.py build`.
+2. The LittleFS partition image includes files from `front/`.
+3. CI builds the front-end automatically; local builds require manual steps above.
 
 See [FRONTEND_BUILD.md](FRONTEND_BUILD.md) for detailed front-end build documentation.
-
-### Manual Front-end Development
-
-For front-end development without rebuilding the firmware:
 
 ### Manual Front-end Development
 
@@ -100,6 +100,42 @@ npm install
 npm run dev         # Development server with hot reload
 npm run deploy      # Build and deploy to front/config/
 ```
+
+## CI Build (GitHub Actions)
+
+A workflow at `.github/workflows/build_firmware.yml` builds the firmware automatically:
+- Triggers on pushes to `main`/`develop` and pull requests
+- Uses Espressif's `esp-idf-ci-action` with target `esp32s3`
+- Uploads build artifacts: `.bin` files and `flasher_args.json`
+
+To download artifacts:
+1. Open the workflow run on GitHub
+2. Download the `firmware-esp32s3` artifact
+3. Use `esptool.py` with the addresses from `flasher_args.json` to flash
+
+## Releases
+
+Tagged releases trigger `.github/workflows/release.yml`:
+- Tag pattern: `v*.*.*` (e.g., `v1.2.3`)
+- Builds front-end + firmware and packages a zip
+- Zip contains firmware `.bin` files and `flasher_args.json`
+
+Create a release by tagging:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+Then download `weather-ticker-esp32s3-v1.0.0.zip` from the Release page.
+
+## Build Cache (ccache)
+
+CI uses `ccache` to speed up incremental builds:
+- Cache directory: `.ccache/` (not committed; ignored via `.gitignore`)
+- Mounted into the build container with compression enabled
+- Max size capped at 1 GB per cache
+- Restored/saved using GitHub Actions cache; caches may be evicted after inactivity
+
+Local builds can also use `ccache` by installing it and setting `CCACHE_DIR`.
 
 ## Project Structure
 
