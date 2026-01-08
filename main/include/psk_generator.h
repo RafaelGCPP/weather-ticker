@@ -1,5 +1,4 @@
-#ifndef BASE32_H
-#define BASE32_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -11,5 +10,3 @@
  * @param length Desired length of the base32 string (in characters)
  */
 void generate_random_psk(char *output, size_t length);
-
-#endif // BASE32_H
