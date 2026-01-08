@@ -1,0 +1,32 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Build Project
+        uses: ./.github/actions/build-project
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/weather-ticker.bin
+            build/bootloader/bootloader.bin
+            build/partition_table/partition-table.bin
+            build/littlefs.bin
+            build/flasher_args.json
+          generate_release_notes: true

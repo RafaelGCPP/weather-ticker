@@ -1,0 +1,17 @@
+- English is the default language for comments and messages in the codebase.
+- Write clear and concise comments that explain the purpose of complex code sections.
+- Use proper grammar and spelling in all comments and messages.
+- Portuguese can be used in interactive chats, but ensure that any code comments or messages intended for the codebase are in English.
+- When switching between languages, maintain clarity and consistency in communication.  
+- Avoid mixing languages within the same comment or message.
+- This code targets the minimum ESP-IDF version specified in the project's README; avoid using vague terms like "latest" or "current" when referring to ESP-IDF versions.
+- The target system has 16MB Flash and 8MB of PSRAM.
+- malloc will allocate memory from PSRAM when requested above 4KB.
+- Prefer C11 standard for new code; use C99 only when necessary for compatibility.
+- Use FreeRTOS APIs for task management, synchronization, and inter-task communication.
+- The LittleFS partition will host the frontend web files that must be built before compiling and flashing the firmware.
+- Use ESP-IDF logging macros (ESP_LOGI, ESP_LOGW, ESP_LOGE, etc.) for logging.
+- For the frontend, there is a npm script "deploy" that builds and deploys the web files to the ESP32 filesystem.
+- There will be two frontends served by the ESP32: a user frontend (weather) and a configuration frontend (config).
+- The frontends are written using Svelte framework and typescript.
+- Follow best practices for Svelte and TypeScript when modifying or adding frontend code.

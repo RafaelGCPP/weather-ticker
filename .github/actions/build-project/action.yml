@@ -1,0 +1,25 @@
+name: 'Build Firmware and Frontend'
+description: 'Sets up Node, builds Svelte frontend and compiles ESP-IDF firmware'
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'front-src/config/package-lock.json'
+
+    - name: Install and Build Config Frontend
+      shell: bash
+      working-directory: front-src/config
+      run: |
+        npm install
+        npm run deploy
+
+    - name: Build Firmware (ESP-IDF)
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: release-v6.0
+        target: esp32s3
+        path: '.'
