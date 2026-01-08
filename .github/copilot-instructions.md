@@ -1,0 +1,11 @@
+- English is the default language for comments and messages in the codebase.
+- Write clear and concise comments that explain the purpose of complex code sections.
+- Use proper grammar and spelling in all comments and messages.
+- Portuguese can be used in interactive chats, but ensure that any code comments or messages intended for the codebase are in English.
+- When switching between languages, maintain clarity and consistency in communication.  
+- Avoid mixing languages within the same comment or message.
+- This code is intended for ESP-IDF 6.0 and later versions. Avoid "latest" or "current" references.
+- The target system has 16MB Flash and 8MB of PSRAM.
+- malloc will allocate memory from PSRAM when requested above 4KB.
+- Prefer C11 standard for new code; use C99 only when necessary for compatibility.
+- Use FreeRTOS APIs for task management, synchronization, and inter-task communication.
