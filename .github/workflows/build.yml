@@ -1,0 +1,25 @@
+name: Build Firmware
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Frontend and Firmware
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Build Project
+        uses: ./.github/actions/build-project
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-binaries
+          path: |
+            build/**/*.bin
+            build/flasher_args.json
