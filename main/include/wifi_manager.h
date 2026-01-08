@@ -1,5 +1,4 @@
-#ifndef WIFI_MANAGER_H
-#define WIFI_MANAGER_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -31,4 +30,3 @@ bool wifi_manager_start_softap(void);
  */
 bool wifi_manager_connect(const char *ssid, const char *password);
 
-#endif // WIFI_MANAGER_H
