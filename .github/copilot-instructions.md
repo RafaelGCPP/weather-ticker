@@ -12,6 +12,6 @@
 - The LittleFS partition will host the frontend web files that must be built before compiling and flashing the firmware.
 - Use ESP-IDF logging macros (ESP_LOGI, ESP_LOGW, ESP_LOGE, etc.) for logging.
 - For the frontend, there is a npm script "deploy" that builds and deploys the web files to the ESP32 filesystem.
-- There will be two frontends served by the ESP32: a user frontend (weather) and an configuration frontend (config).
+- There will be two frontends served by the ESP32: a user frontend (weather) and a configuration frontend (config).
 - The frontends are written using Svelte framework and typescript.
 - Follow best practices for Svelte and TypeScript when modifying or adding frontend code.
