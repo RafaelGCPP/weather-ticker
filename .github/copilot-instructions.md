@@ -4,7 +4,7 @@
 - Portuguese can be used in interactive chats, but ensure that any code comments or messages intended for the codebase are in English.
 - When switching between languages, maintain clarity and consistency in communication.  
 - Avoid mixing languages within the same comment or message.
-- This code is intended for ESP-IDF 6.0 and later versions. Avoid "latest" or "current" references.
+- This code targets the minimum ESP-IDF version specified in the project's README; avoid using vague terms like "latest" or "current" when referring to ESP-IDF versions.
 - The target system has 16MB Flash and 8MB of PSRAM.
 - malloc will allocate memory from PSRAM when requested above 4KB.
 - Prefer C11 standard for new code; use C99 only when necessary for compatibility.
