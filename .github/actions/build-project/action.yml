@@ -18,6 +18,6 @@ runs:
     - name: Build Firmware (ESP-IDF)
       uses: espressif/esp-idf-ci-action@v1
       with:
-        esp_idf_version: v6.0
+        esp_idf_version: release-v6.0
         target: esp32s3
         path: '.'
