@@ -1,5 +1,5 @@
 name: 'Build Firmware and Frontend'
-description: 'Setups Node, builds Svelte frontend and compiles ESP-IDF firmware'
+description: 'Sets up Node, builds Svelte frontend and compiles ESP-IDF firmware'
 runs:
   using: "composite"
   steps:
